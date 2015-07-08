@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011 Zhang, Keguang <keguang.zhang@gmail.com>
+ * Copyright (c) 2015 Tang Haifeng <tanghaifeng-gz@loongson.cn>
  *
  * Modified from arch/mips/pnx833x/common/prom.c.
  *
@@ -10,6 +11,7 @@
  */
 
 #include <linux/serial_reg.h>
+#include <linux/delay.h>
 #include <asm/bootinfo.h>
 
 #include <loongson1.h>
@@ -61,17 +63,45 @@ void __init prom_init(void)
 	prom_argv = (char **)fw_arg1;
 	prom_envp = (char **)fw_arg2;
 
+#if defined(CONFIG_LOONGSON1_LS1C)
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~USBHOST_SHUT), LS1X_MUX_CTRL0);
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) & (~USBHOST_RSTN), LS1X_MUX_CTRL1);
+	mdelay(60);
+	/* reset stop */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) | USBHOST_RSTN, LS1X_MUX_CTRL1);
+#else
+	/* 需要复位一次USB控制器，且复位时间要足够长，否则启动时莫名其妙的死机 */
+	#if defined(CONFIG_LOONGSON1_LS1A)
+	#define MUX_CTRL0 LS1X_MUX_CTRL0
+	#define MUX_CTRL1 LS1X_MUX_CTRL1
+	#elif defined(CONFIG_LOONGSON1_LS1B)
+	#define MUX_CTRL0 LS1X_MUX_CTRL1
+	#define MUX_CTRL1 LS1X_MUX_CTRL1
+	#endif
+//	__raw_writel(__raw_readl(MUX_CTRL0) | USB_SHUT, MUX_CTRL0);
+//	__raw_writel(__raw_readl(MUX_CTRL1) & (~USB_RESET), MUX_CTRL1);
+//	mdelay(10);
+//	#if defined(CONFIG_USB_EHCI_HCD_LS1X) || defined(CONFIG_USB_OHCI_HCD_LS1X)
+	/* USB controller enable and reset */
+	__raw_writel(__raw_readl(MUX_CTRL0) & (~USB_SHUT), MUX_CTRL0);
+	__raw_writel(__raw_readl(MUX_CTRL1) & (~USB_RESET), MUX_CTRL1);
+	mdelay(60);
+	/* reset stop */
+	__raw_writel(__raw_readl(MUX_CTRL1) | USB_RESET, MUX_CTRL1);
+//	#endif
+#endif
+
 	prom_init_cmdline();
 
 	memsize = env_or_default("memsize", DEFAULT_MEMSIZE);
 	highmemsize = env_or_default("highmemsize", 0x0);
+
+	pr_info("memsize=%ldMB, highmemsize=%ldMB\n", memsize, highmemsize);
 }
 
 void __init prom_free_prom_memory(void)
 {
 }
-
-#define PORT(offset)	(u8 *)(KSEG1ADDR(LS1X_UART0_BASE + offset))
 
 void prom_putchar(char c)
 {

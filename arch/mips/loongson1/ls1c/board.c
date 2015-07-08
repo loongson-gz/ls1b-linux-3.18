@@ -9,7 +9,7 @@
 
 #include <platform.h>
 
-static struct platform_device *ls1b_platform_devices[] __initdata = {
+static struct platform_device *ls1c_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
 #if defined(CONFIG_LS1X_GMAC0)
 	&ls1x_eth0_pdev,
@@ -26,15 +26,15 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 	&ls1x_rtc_pdev,
 };
 
-static int __init ls1b_platform_init(void)
+static int __init ls1c_platform_init(void)
 {
 	int err;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
 
-	err = platform_add_devices(ls1b_platform_devices,
-				   ARRAY_SIZE(ls1b_platform_devices));
+	err = platform_add_devices(ls1c_platform_devices,
+				   ARRAY_SIZE(ls1c_platform_devices));
 	return err;
 }
 
-arch_initcall(ls1b_platform_init);
+arch_initcall(ls1c_platform_init);
