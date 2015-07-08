@@ -315,3 +315,30 @@ struct platform_device ls1x_rtc_pdev = {
 	.name		= "ls1x-rtc",
 	.id		= -1,
 };
+
+#ifdef CONFIG_MTD_NAND_LS1X
+#include <ls1x_nand.h>
+extern struct ls1x_nand_platform_data ls1x_nand_parts;
+static struct resource ls1x_nand_resources[] = {
+	[0] = {
+		.start	= LS1X_NAND_BASE,
+		.end	= LS1X_NAND_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1] = {
+		.start	= LS1X_DMA0_IRQ,
+        .end	= LS1X_DMA0_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+struct platform_device ls1x_nand_pdev = {
+	.name	= "ls1x-nand",
+	.id		= -1,
+	.dev	= {
+		.platform_data = &ls1x_nand_parts,
+	},
+	.num_resources	= ARRAY_SIZE(ls1x_nand_resources),
+	.resource		= ls1x_nand_resources,
+};
+#endif //CONFIG_MTD_NAND_LS1X

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011 Zhang, Keguang <keguang.zhang@gmail.com>
+ * Copyright (c) 2015 Tang Haifeng <tanghaifeng-gz@loongson.cn> or <pengren.mcu@qq.com>
  *
  * This program is free software; you can redistribute	it and/or modify it
  * under  the terms of	the GNU General	 Public License as published by the
@@ -8,9 +9,37 @@
  */
 
 #include <platform.h>
+#include <loongson1.h>
+
+#ifdef CONFIG_MTD_NAND_LS1X
+#include <ls1x_nand.h>
+static struct mtd_partition ls1x_nand_partitions[] = {
+	{
+		.name	= "kernel",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= 14*1024*1024,
+	}, {
+		.name	= "rootfs",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= 100*1024*1024,
+	}, {
+		.name	= "data",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= MTDPART_SIZ_FULL,
+	},
+};
+
+struct ls1x_nand_platform_data ls1x_nand_parts = {
+	.parts		= ls1x_nand_partitions,
+	.nr_parts	= ARRAY_SIZE(ls1x_nand_partitions),
+};
+#endif
 
 static struct platform_device *ls1a_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
+#ifdef CONFIG_MTD_NAND_LS1X
+	&ls1x_nand_pdev,
+#endif
 #if defined(CONFIG_LS1X_GMAC0)
 	&ls1x_eth0_pdev,
 #endif
