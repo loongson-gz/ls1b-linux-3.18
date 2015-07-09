@@ -561,6 +561,9 @@ CONFIG_MTD_CFI_I2=y
 #
 # Self-contained MTD device drivers
 #
+# CONFIG_MTD_DATAFLASH is not set
+CONFIG_MTD_M25P80=y
+# CONFIG_MTD_SST25L is not set
 # CONFIG_MTD_SLRAM is not set
 # CONFIG_MTD_PHRAM is not set
 # CONFIG_MTD_MTDRAM is not set
@@ -590,7 +593,8 @@ CONFIG_MTD_NAND_LS1X=y
 # LPDDR & LPDDR2 PCM memory drivers
 #
 # CONFIG_MTD_LPDDR is not set
-# CONFIG_MTD_SPI_NOR is not set
+CONFIG_MTD_SPI_NOR=y
+CONFIG_MTD_SPI_NOR_USE_4K_SECTORS=y
 CONFIG_MTD_UBI=y
 CONFIG_MTD_UBI_WL_THRESHOLD=4096
 CONFIG_MTD_UBI_BEB_LIMIT=20
@@ -617,20 +621,27 @@ CONFIG_BLK_DEV_LOOP_MIN_COUNT=8
 # Misc devices
 #
 # CONFIG_SENSORS_LIS3LV02D is not set
+# CONFIG_AD525X_DPOT is not set
 # CONFIG_DUMMY_IRQ is not set
 # CONFIG_ENCLOSURE_SERVICES is not set
+# CONFIG_TI_DAC7512 is not set
+# CONFIG_BMP085_SPI is not set
+# CONFIG_LATTICE_ECP3_CONFIG is not set
 # CONFIG_SRAM is not set
 # CONFIG_C2PORT is not set
 
 #
 # EEPROM support
 #
+# CONFIG_EEPROM_AT25 is not set
 # CONFIG_EEPROM_93CX6 is not set
+# CONFIG_EEPROM_93XX46 is not set
 
 #
 # Texas Instruments shared transport line discipline
 #
 # CONFIG_TI_ST is not set
+# CONFIG_SENSORS_LIS3_SPI is not set
 
 #
 # Altera FPGA firmware download module
@@ -731,6 +742,8 @@ CONFIG_ETHERNET=y
 # CONFIG_NET_VENDOR_INTEL is not set
 # CONFIG_NET_VENDOR_MARVELL is not set
 # CONFIG_NET_VENDOR_MICREL is not set
+CONFIG_NET_VENDOR_MICROCHIP=y
+# CONFIG_ENC28J60 is not set
 # CONFIG_NET_VENDOR_NATSEMI is not set
 # CONFIG_ETHOC is not set
 # CONFIG_NET_VENDOR_QUALCOMM is not set
@@ -771,6 +784,7 @@ CONFIG_PHYLIB=y
 # CONFIG_FIXED_PHY is not set
 # CONFIG_MDIO_BITBANG is not set
 # CONFIG_MDIO_BCM_UNIMAC is not set
+# CONFIG_MICREL_KS8995MA is not set
 # CONFIG_PPP is not set
 # CONFIG_SLIP is not set
 # CONFIG_USB_NET_DRIVERS is not set
@@ -861,11 +875,14 @@ CONFIG_SERIAL_8250_RUNTIME_UARTS=4
 #
 # Non-8250 serial port support
 #
+# CONFIG_SERIAL_MAX3100 is not set
+# CONFIG_SERIAL_MAX310X is not set
 CONFIG_SERIAL_CORE=y
 CONFIG_SERIAL_CORE_CONSOLE=y
 # CONFIG_SERIAL_SCCNXP is not set
 # CONFIG_SERIAL_ALTERA_JTAGUART is not set
 # CONFIG_SERIAL_ALTERA_UART is not set
+# CONFIG_SERIAL_IFX6X60 is not set
 # CONFIG_SERIAL_ARC is not set
 # CONFIG_SERIAL_FSL_LPUART is not set
 # CONFIG_TTY_PRINTK is not set
@@ -879,7 +896,34 @@ CONFIG_SERIAL_CORE_CONSOLE=y
 # I2C support
 #
 # CONFIG_I2C is not set
-# CONFIG_SPI is not set
+CONFIG_SPI=y
+# CONFIG_SPI_DEBUG is not set
+CONFIG_SPI_MASTER=y
+
+#
+# SPI Master Controller Drivers
+#
+# CONFIG_SPI_ALTERA is not set
+CONFIG_SPI_BITBANG=y
+# CONFIG_SPI_GPIO is not set
+# CONFIG_SPI_OC_TINY is not set
+CONFIG_SPI_LS1X=y
+CONFIG_SPI_LS1X_SPI0=y
+# CONFIG_SPI_LS1X_SPI1 is not set
+# CONFIG_SPI_CS_USED_GPIO is not set
+CONFIG_SPI_CS=y
+CONFIG_SPI_POLL_MODE=y
+# CONFIG_SPI_IRQ_MODE is not set
+# CONFIG_SPI_PXA2XX_PCI is not set
+# CONFIG_SPI_ROCKCHIP is not set
+# CONFIG_SPI_XILINX is not set
+# CONFIG_SPI_DESIGNWARE is not set
+
+#
+# SPI Protocol Masters
+#
+# CONFIG_SPI_SPIDEV is not set
+# CONFIG_SPI_TLE62X0 is not set
 # CONFIG_SPMI is not set
 # CONFIG_HSI is not set
 
@@ -935,6 +979,9 @@ CONFIG_GPIO_LOONGSON1=y
 #
 # SPI GPIO expanders:
 #
+# CONFIG_GPIO_MAX7301 is not set
+# CONFIG_GPIO_MCP23S08 is not set
+# CONFIG_GPIO_MC33880 is not set
 
 #
 # AC97 GPIO expanders:
@@ -975,8 +1022,11 @@ CONFIG_BCMA_POSSIBLE=y
 #
 # CONFIG_MFD_CORE is not set
 # CONFIG_MFD_CROS_EC is not set
+# CONFIG_MFD_DA9052_SPI is not set
+# CONFIG_MFD_MC13XXX_SPI is not set
 # CONFIG_HTC_PASIC3 is not set
 # CONFIG_MFD_KEMPLD is not set
+# CONFIG_EZX_PCAP is not set
 # CONFIG_MFD_VIPERBOARD is not set
 # CONFIG_MFD_RTSX_USB is not set
 # CONFIG_MFD_SM501 is not set
@@ -984,7 +1034,10 @@ CONFIG_BCMA_POSSIBLE=y
 # CONFIG_MFD_SYSCON is not set
 # CONFIG_MFD_TI_AM335X_TSCADC is not set
 # CONFIG_MFD_TPS65912 is not set
+# CONFIG_MFD_TPS65912_SPI is not set
 # CONFIG_MFD_TMIO is not set
+# CONFIG_MFD_ARIZONA_SPI is not set
+# CONFIG_MFD_WM831X_SPI is not set
 # CONFIG_REGULATOR is not set
 # CONFIG_MEDIA_SUPPORT is not set
 
@@ -1117,6 +1170,7 @@ CONFIG_USB_EHCI_HCD_PLATFORM=y
 # CONFIG_USB_ISP1362_HCD is not set
 # CONFIG_USB_FUSBH200_HCD is not set
 # CONFIG_USB_FOTG210_HCD is not set
+# CONFIG_USB_MAX3421_HCD is not set
 CONFIG_USB_OHCI_HCD=y
 CONFIG_USB_OHCI_HCD_PLATFORM=y
 # CONFIG_USB_SL811_HCD is not set

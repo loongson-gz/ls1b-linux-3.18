@@ -43,6 +43,42 @@ struct ls1x_nand_platform_data ls1x_nand_parts = {
 };
 #endif
 
+#if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
+#include <linux/spi/flash.h>
+static struct mtd_partition ls1x_spi_flash_partitions[] = {
+	{
+		.name = "pmon(spi)",
+		.size = 0x00080000,
+		.offset = 0,
+//		.mask_flags = MTD_CAP_ROM
+	}
+};
+
+static struct flash_platform_data ls1x_spi_flash_data = {
+	.name = "spi-flash",
+	.parts = ls1x_spi_flash_partitions,
+	.nr_parts = ARRAY_SIZE(ls1x_spi_flash_partitions),
+	.type = "w25x40",
+};
+#endif
+
+#ifdef CONFIG_SPI_LS1X_SPI0
+#include <linux/spi/spi.h>
+#include <linux/spi/spi_ls1x.h>
+static struct spi_board_info ls1x_spi0_devices[] = {
+#if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
+	{
+		.modalias	= "m25p80",
+		.bus_num 		= 0,
+		.chip_select	= SPI0_CS0,
+		.max_speed_hz	= 60000000,
+		.platform_data	= &ls1x_spi_flash_data,
+		.mode = SPI_MODE_3,
+	},
+#endif
+};
+#endif
+
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 #include <linux/gpio.h>
 #include <linux/gpio/machine.h>
@@ -78,6 +114,9 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 	&ls1x_ehci_pdev,
 #endif
 	&ls1x_rtc_pdev,
+#ifdef CONFIG_SPI_LS1X_SPI0
+	&ls1x_spi0_pdev,
+#endif
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	&ls1x_gpio_beeper,
 #endif
@@ -88,6 +127,9 @@ static int __init ls1c_platform_init(void)
 	int err;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
+#if defined(CONFIG_SPI_LS1X_SPI0)
+	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
+#endif
 
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	gpiod_add_lookup_table(&buzzer_gpio_table);

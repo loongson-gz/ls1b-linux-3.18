@@ -342,3 +342,91 @@ struct platform_device ls1x_nand_pdev = {
 	.resource		= ls1x_nand_resources,
 };
 #endif //CONFIG_MTD_NAND_LS1X
+
+#ifdef CONFIG_SPI_LS1X_SPI0
+#include <linux/spi/spi_ls1x.h>
+static struct resource ls1x_spi0_resource[] = {
+	[0] = {
+		.start	= LS1X_SPI0_BASE,
+		.end	= LS1X_SPI0_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+#if defined(CONFIG_SPI_IRQ_MODE)
+	[1] = {
+		.start	= LS1X_SPI0_IRQ,
+		.end	= LS1X_SPI0_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+#endif
+};
+
+#ifdef CONFIG_SPI_CS_USED_GPIO
+static int spi0_gpios_cs[] =
+	{ 27, 28, 29, 30 };
+#endif
+
+static struct ls1x_spi_platform_data ls1x_spi0_platdata = {
+#ifdef CONFIG_SPI_CS_USED_GPIO
+	.gpio_cs_count = ARRAY_SIZE(spi0_gpios_cs),
+	.gpio_cs = spi0_gpios_cs,
+#elif CONFIG_SPI_CS
+	.cs_count = SPI0_CS3 + 1,
+#endif
+};
+
+struct platform_device ls1x_spi0_pdev = {
+	.name		= "spi_ls1x",
+	.id 		= 0,
+	.num_resources	= ARRAY_SIZE(ls1x_spi0_resource),
+	.resource	= ls1x_spi0_resource,
+	.dev		= {
+		.platform_data	= &ls1x_spi0_platdata,
+	},
+};
+#endif
+
+#ifdef CONFIG_SPI_LS1X_SPI1
+#include <linux/spi/spi_ls1x.h>
+static struct resource ls1x_spi1_resource[] = {
+	[0] = {
+		.start	= LS1X_SPI1_BASE,
+		.end	= LS1X_SPI1_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+#if defined(CONFIG_SPI_IRQ_MODE)
+	[1] = {
+		.start	= LS1X_SPI1_IRQ,
+		.end	= LS1X_SPI1_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+#endif
+};
+
+#ifdef CONFIG_SPI_CS_USED_GPIO
+static int spi1_gpios_cs[] =
+#if defined(CONFIG_LOONGSON1_LS1A)
+	{ 47, 69, 68 };
+#elif defined(CONFIG_LOONGSON1_LS1B)
+	{ 38, 0, 1 };
+#endif
+#endif
+
+static struct ls1x_spi_platform_data ls1x_spi1_platdata = {
+#ifdef CONFIG_SPI_CS_USED_GPIO
+	.gpio_cs_count = ARRAY_SIZE(spi1_gpios_cs),
+	.gpio_cs = spi1_gpios_cs,
+#elif CONFIG_SPI_CS
+	.cs_count = SPI1_CS2 + 1,
+#endif
+};
+
+struct platform_device ls1x_spi1_pdev = {
+	.name		= "spi_ls1x",
+	.id 		= 1,
+	.num_resources	= ARRAY_SIZE(ls1x_spi1_resource),
+	.resource	= ls1x_spi1_resource,
+	.dev		= {
+		.platform_data	= &ls1x_spi1_platdata,
+	},
+};
+#endif
