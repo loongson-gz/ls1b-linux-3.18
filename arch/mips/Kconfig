@@ -304,6 +304,7 @@ config MACH_LOONGSON1
 	select SYS_HAS_CPU_MIPS32_R1
 	select SYS_HAS_CPU_MIPS32_R2
 	select SYS_SUPPORTS_ZBOOT
+	select ARCH_REQUIRE_GPIOLIB
 	help
 	  This enables support for the Loongson 1 based machines.
 

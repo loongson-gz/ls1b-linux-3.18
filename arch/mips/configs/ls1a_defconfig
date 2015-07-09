@@ -576,6 +576,7 @@ CONFIG_MTD_NAND=y
 # CONFIG_MTD_NAND_ECC_BCH is not set
 # CONFIG_MTD_SM_COMMON is not set
 # CONFIG_MTD_NAND_DENALI is not set
+# CONFIG_MTD_NAND_GPIO is not set
 # CONFIG_MTD_NAND_OMAP_BCH_BUILD is not set
 CONFIG_MTD_NAND_IDS=y
 # CONFIG_MTD_NAND_DISKONCHIP is not set
@@ -631,6 +632,7 @@ CONFIG_BLK_DEV_LOOP_MIN_COUNT=8
 #
 # Texas Instruments shared transport line discipline
 #
+# CONFIG_TI_ST is not set
 
 #
 # Altera FPGA firmware download module
@@ -898,6 +900,47 @@ CONFIG_PTP_1588_CLOCK=y
 # Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
 #
 CONFIG_ARCH_HAVE_CUSTOM_GPIO_H=y
+CONFIG_ARCH_REQUIRE_GPIOLIB=y
+CONFIG_GPIOLIB=y
+CONFIG_GPIO_DEVRES=y
+# CONFIG_DEBUG_GPIO is not set
+CONFIG_GPIO_SYSFS=y
+
+#
+# Memory mapped GPIO drivers:
+#
+# CONFIG_GPIO_GENERIC_PLATFORM is not set
+# CONFIG_GPIO_DWAPB is not set
+CONFIG_GPIO_LOONGSON1=y
+# CONFIG_GPIO_SCH311X is not set
+
+#
+# I2C GPIO expanders:
+#
+
+#
+# PCI GPIO expanders:
+#
+
+#
+# SPI GPIO expanders:
+#
+
+#
+# AC97 GPIO expanders:
+#
+
+#
+# LPC GPIO expanders:
+#
+
+#
+# MODULbus GPIO expanders:
+#
+
+#
+# USB GPIO expanders:
+#
 # CONFIG_W1 is not set
 # CONFIG_POWER_SUPPLY is not set
 # CONFIG_POWER_AVS is not set
@@ -930,6 +973,7 @@ CONFIG_BCMA_POSSIBLE=y
 # CONFIG_ABX500_CORE is not set
 # CONFIG_MFD_SYSCON is not set
 # CONFIG_MFD_TI_AM335X_TSCADC is not set
+# CONFIG_MFD_TPS65912 is not set
 # CONFIG_MFD_TMIO is not set
 # CONFIG_REGULATOR is not set
 # CONFIG_MEDIA_SUPPORT is not set
@@ -1092,6 +1136,7 @@ CONFIG_USB_STORAGE=y
 #
 # CONFIG_USB_PHY is not set
 # CONFIG_NOP_USB_XCEIV is not set
+# CONFIG_USB_GPIO_VBUS is not set
 # CONFIG_USB_GADGET is not set
 # CONFIG_UWB is not set
 # CONFIG_MMC is not set

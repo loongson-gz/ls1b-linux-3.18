@@ -130,5 +130,6 @@
 #include <regs-clk.h>
 #include <regs-mux.h>
 #include <regs-wdt.h>
+#include <regs-gpio.h>
 
 #endif /* __ASM_MACH_LOONGSON1_LOONGSON1_H */

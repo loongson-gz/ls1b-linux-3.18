@@ -8,6 +8,8 @@
  * option) any later version.
  */
 
+#include <linux/clk.h>
+
 #include <platform.h>
 #include <loongson1.h>
 
@@ -35,6 +37,56 @@ struct ls1x_nand_platform_data ls1x_nand_parts = {
 };
 #endif
 
+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+#include <linux/leds.h>
+static struct gpio_led gpio_leds[] = {
+	{
+		.name			= "led_green0",
+		.gpio			= 38,
+		.active_low		= 1,
+		.default_trigger	= "timer",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "led_green1",
+		.gpio			= 39,
+		.active_low		= 1,
+		.default_trigger	= "heartbeat",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+};
+
+static struct gpio_led_platform_data gpio_led_info = {
+	.leds		= gpio_leds,
+	.num_leds	= ARRAY_SIZE(gpio_leds),
+};
+
+static struct platform_device leds = {
+	.name	= "leds-gpio",
+	.id	= -1,
+	.dev	= {
+		.platform_data	= &gpio_led_info,
+	}
+};
+#endif //#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+
+#ifdef CONFIG_INPUT_GPIO_BEEPER
+#include <linux/gpio.h>
+#include <linux/gpio/machine.h>
+static struct gpiod_lookup_table buzzer_gpio_table = {
+	.dev_id = "gpio-beeper",	/* 注意 该值与ls1x_gpio_beeper.name相同 */
+	.table = {
+		GPIO_LOOKUP("ls1x-gpio1", 8, NULL, 0),	/* 使用第1组gpio的第8个引脚 注意"ls1x-gpio1"与gpio的label值相同 */
+		{ },
+	},
+};
+
+struct platform_device ls1x_gpio_beeper = {
+	.name = "gpio-beeper",
+	.id = -1,
+};
+#endif
+
 static struct platform_device *ls1b_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
 #ifdef CONFIG_MTD_NAND_LS1X
@@ -53,6 +105,12 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 	&ls1x_ehci_pdev,
 #endif
 	&ls1x_rtc_pdev,
+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+	&leds,
+#endif
+#ifdef CONFIG_INPUT_GPIO_BEEPER
+	&ls1x_gpio_beeper,
+#endif
 };
 
 static int __init ls1b_platform_init(void)
@@ -60,6 +118,10 @@ static int __init ls1b_platform_init(void)
 	int err;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
+
+#ifdef CONFIG_INPUT_GPIO_BEEPER
+	gpiod_add_lookup_table(&buzzer_gpio_table);
+#endif
 
 	err = platform_add_devices(ls1b_platform_devices,
 				   ARRAY_SIZE(ls1b_platform_devices));
