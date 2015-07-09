@@ -430,3 +430,157 @@ struct platform_device ls1x_spi1_pdev = {
 	},
 };
 #endif
+
+#if defined(CONFIG_FB_LOONGSON1)
+#include <video/ls1xfb.h>
+#include "video_modes.c"
+#ifdef CONFIG_LS1X_FB0
+static struct resource ls1x_fb0_resource[] = {
+	[0] = {
+		.start = LS1X_DC0_BASE,
+		.end   = LS1X_DC0_BASE + SZ_1M - 1,
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+static struct ls1xfb_mach_info ls1x_lcd0_info = {
+	.id			= "Graphic lcd",
+	.modes			= video_modes,
+	.num_modes		= ARRAY_SIZE(video_modes),
+	.pix_fmt		= PIX_FMT_RGB565,
+	.de_mode		= 0,	/* 注意：lcd是否使用DE模式 */
+	/* 根据lcd屏修改invert_pixclock和invert_pixde参数(0或1)，部分lcd可能显示不正常 */
+	.invert_pixclock	= 0,
+	.invert_pixde	= 0,
+};
+
+struct platform_device ls1x_fb0_pdev = {
+	.name			= "ls1x-fb",
+	.id				= 0,
+	.num_resources	= ARRAY_SIZE(ls1x_fb0_resource),
+	.resource		= ls1x_fb0_resource,
+	.dev			= {
+		.platform_data = &ls1x_lcd0_info,
+	}
+};
+#endif	//#ifdef CONFIG_LS1X_FB0
+
+#ifdef CONFIG_LS1X_FB1
+static struct resource ls1x_fb1_resource[] = {
+	[0] = {
+		.start = LS1X_DC1_BASE,
+		.end   = LS1X_DC1_BASE + SZ_1M - 1,
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+struct ls1xfb_mach_info ls1x_lcd1_info = {
+	.id			= "Graphic vga",
+	.i2c_bus_num	= 0,
+	.modes			= video_modes,
+	.num_modes		= ARRAY_SIZE(video_modes),
+	.pix_fmt		= PIX_FMT_RGB565,
+	.de_mode		= 0,	/* 注意：vga不使用DE模式 */
+	.invert_pixclock	= 0,
+	.invert_pixde	= 0,
+};
+
+struct platform_device ls1x_fb1_pdev = {
+	.name			= "ls1x-fb",
+	.id				= 1,
+	.num_resources	= ARRAY_SIZE(ls1x_fb1_resource),
+	.resource		= ls1x_fb1_resource,
+	.dev			= {
+		.platform_data = &ls1x_lcd1_info,
+	}
+};
+#endif	//#ifdef CONFIG_LS1X_FB1
+#endif	//#if defined(CONFIG_FB_LOONGSON1)
+
+#ifdef CONFIG_I2C_LS1X
+extern struct ls1x_i2c_platform_data ls1x_i2c0_data;
+static struct resource ls1x_i2c0_resource[] = {
+	[0]={
+		.start	= LS1X_I2C0_BASE,
+		.end	= LS1X_I2C0_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_i2c0_pdev = {
+	.name		= "ls1x-i2c",
+	.id			= 0,
+	.num_resources	= ARRAY_SIZE(ls1x_i2c0_resource),
+	.resource	= ls1x_i2c0_resource,
+	.dev = {
+		.platform_data	= &ls1x_i2c0_data,
+	}
+};
+
+extern struct ls1x_i2c_platform_data ls1x_i2c1_data;
+static struct resource ls1x_i2c1_resource[] = {
+	[0]={
+		.start	= LS1X_I2C1_BASE,
+		.end	= LS1X_I2C1_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_i2c1_pdev = {
+	.name		= "ls1x-i2c",
+	.id			= 1,
+	.num_resources	= ARRAY_SIZE(ls1x_i2c1_resource),
+	.resource	= ls1x_i2c1_resource,
+	.dev = {
+		.platform_data	= &ls1x_i2c1_data,
+	}
+};
+
+extern struct ls1x_i2c_platform_data ls1x_i2c2_data;
+static struct resource ls1x_i2c2_resource[] = {
+	[0]={
+		.start	= LS1X_I2C2_BASE,
+		.end	= LS1X_I2C2_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_i2c2_pdev = {
+	.name		= "ls1x-i2c",
+	.id			= 2,
+	.num_resources	= ARRAY_SIZE(ls1x_i2c2_resource),
+	.resource	= ls1x_i2c2_resource,
+	.dev = {
+		.platform_data	= &ls1x_i2c2_data,
+	}
+};
+#endif //#ifdef CONFIG_I2C_LS1X
+
+/* ls1c300b的i2c控制器添加了中断(添加了中断号，原来1a 1b 1c的i2c控制器中断号都没有引出
+        所以不能使用中断)，与ocores的i2c控制器相同，所以这里使用linux内核提供的ocores i2c控制器驱动
+ */
+#ifdef CONFIG_I2C_OCORES
+extern struct ocores_i2c_platform_data ocores_i2c0_data;
+static struct resource ls1x_i2c0_resource[] = {
+	[0]={
+		.start	= LS1X_I2C0_BASE,
+		.end	= LS1X_I2C0_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1]={
+		.start	= LS1X_I2C0_IRQ,
+		.end	= LS1X_I2C0_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+struct platform_device ls1x_i2c0_pdev = {
+	.name		= "ocores-i2c",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(ls1x_i2c0_resource),
+	.resource	= ls1x_i2c0_resource,
+	.dev = {
+		.platform_data	= &ocores_i2c0_data,
+	}
+};
+#endif	//#ifdef CONFIG_I2C_OCORES

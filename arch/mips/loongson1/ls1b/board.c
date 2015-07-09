@@ -9,9 +9,11 @@
  */
 
 #include <linux/clk.h>
+#include <linux/gpio.h>
 
 #include <platform.h>
 #include <loongson1.h>
+#include <irq.h>
 
 #ifdef CONFIG_MTD_NAND_LS1X
 #include <ls1x_nand.h>
@@ -138,6 +140,27 @@ static struct spi_board_info ls1x_spi0_devices[] = {
 };
 #endif
 
+#ifdef CONFIG_I2C_LS1X
+#include <linux/i2c-ls1x.h>
+struct ls1x_i2c_platform_data ls1x_i2c0_data = {
+	.bus_clock_hz = 100000, /* i2c bus clock in Hz */
+//	.devices	= ls1x_i2c0_board_info, /* optional table of devices */
+//	.num_devices	= ARRAY_SIZE(ls1x_i2c0_board_info), /* table size */
+};
+
+struct ls1x_i2c_platform_data ls1x_i2c1_data = {
+	.bus_clock_hz = 100000, /* i2c bus clock in Hz */
+//	.devices	= ls1x_i2c1_board_info, /* optional table of devices */
+//	.num_devices	= ARRAY_SIZE(ls1x_i2c1_board_info), /* table size */
+};
+
+struct ls1x_i2c_platform_data ls1x_i2c2_data = {
+	.bus_clock_hz = 100000, /* i2c bus clock in Hz */
+//	.devices	= ls1x_i2c2_board_info, /* optional table of devices */
+//	.num_devices	= ARRAY_SIZE(ls1x_i2c2_board_info), /* table size */
+};
+#endif
+
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 #include <linux/leds.h>
 static struct gpio_led gpio_leds[] = {
@@ -208,6 +231,12 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 	&ls1x_rtc_pdev,
 #ifdef CONFIG_SPI_LS1X_SPI0
 	&ls1x_spi0_pdev,
+#endif
+#ifdef CONFIG_I2C_LS1X
+	&ls1x_i2c0_pdev,
+#endif
+#ifdef CONFIG_LS1X_FB0
+	&ls1x_fb0_pdev,
 #endif
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 	&leds,
