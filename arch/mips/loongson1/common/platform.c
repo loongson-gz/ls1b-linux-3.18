@@ -311,10 +311,77 @@ struct platform_device ls1x_ehci_pdev = {
 #endif
 
 /* Real Time Clock */
-struct platform_device ls1x_rtc_pdev = {
-	.name		= "ls1x-rtc",
-	.id		= -1,
+#ifdef CONFIG_RTC_DRV_RTC_LOONGSON1
+static struct resource ls1x_rtc_resource[] = {
+	[0] = {
+		.start      = LS1X_RTC_BASE,
+		.end        = LS1X_RTC_BASE + SZ_16K - 1,
+		.flags      = IORESOURCE_MEM,
+	},
+	[1] = {
+		.start      = LS1X_RTC_INT0_IRQ,
+		.end        = LS1X_RTC_INT0_IRQ,
+		.flags      = IORESOURCE_IRQ,
+	},
+	[2] = {
+		.start      = LS1X_RTC_INT1_IRQ,
+		.end        = LS1X_RTC_INT1_IRQ,
+		.flags      = IORESOURCE_IRQ,
+	},
+	[3] = {
+		.start      = LS1X_RTC_INT2_IRQ,
+		.end        = LS1X_RTC_INT2_IRQ,
+		.flags      = IORESOURCE_IRQ,
+	},
+	[4] = {
+		.start      = LS1X_RTC_TICK_IRQ,
+		.end        = LS1X_RTC_TICK_IRQ,
+		.flags      = IORESOURCE_IRQ,
+	},
 };
+
+struct platform_device ls1x_rtc_pdev = {
+	.name       = "ls1x-rtc",
+	.id         = 0,
+	.num_resources  = ARRAY_SIZE(ls1x_rtc_resource),
+	.resource   = ls1x_rtc_resource,
+};
+#endif //#ifdef CONFIG_RTC_DRV_RTC_LOONGSON1
+
+#ifdef CONFIG_RTC_DRV_TOY_LOONGSON1
+struct platform_device ls1x_toy_pdev = {
+	.name		= "ls1x-toy",
+	.id		= 1,
+};
+#endif
+
+#ifdef CONFIG_RTC_DRV_TOY_LOONGSON1CV2
+struct platform_device ls1x_toy_pdev = {
+	.name		= "ls1x-toy",
+	.id		= 0,
+};
+#endif
+
+#ifdef CONFIG_LS1X_WDT
+static struct resource ls1x_wdt_resource[] = {
+	[0] = {
+		.start      = LS1X_WDT_BASE,
+#if defined(CONFIG_LOONGSON1_LS1A)
+		.end        = LS1X_WDT_BASE + 8,
+#else
+		.end        = LS1X_WDT_BASE + SZ_16K - 1,
+#endif
+		.flags      = IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_wdt_pdev = {
+	.name       = "ls1x-wdt",
+	.id         = -1,
+	.num_resources  = ARRAY_SIZE(ls1x_wdt_resource),
+	.resource   = ls1x_wdt_resource,
+};
+#endif //#ifdef CONFIG_LS1X_WDT
 
 #ifdef CONFIG_MTD_NAND_LS1X
 #include <ls1x_nand.h>

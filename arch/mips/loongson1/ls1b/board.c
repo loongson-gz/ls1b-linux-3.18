@@ -228,7 +228,15 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 #ifdef CONFIG_USB_EHCI_HCD_PLATFORM
 	&ls1x_ehci_pdev,
 #endif
+#ifdef CONFIG_RTC_DRV_RTC_LOONGSON1
 	&ls1x_rtc_pdev,
+#endif
+#ifdef CONFIG_RTC_DRV_TOY_LOONGSON1
+	&ls1x_toy_pdev,
+#endif
+#ifdef CONFIG_LS1X_WDT
+	&ls1x_wdt_pdev,
+#endif
 #ifdef CONFIG_SPI_LS1X_SPI0
 	&ls1x_spi0_pdev,
 #endif
