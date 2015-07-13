@@ -202,6 +202,13 @@ static struct platform_device *ls1a_platform_devices[] __initdata = {
 #ifdef CONFIG_LS1X_FB1
 	&ls1x_fb1_pdev,
 #endif
+#ifdef CONFIG_SND_LS1X_SOC_AC97
+	&ls1x_ac97_pdev,
+	&ls1x_stac_pdev,
+#endif
+#ifdef CONFIG_SND_LS1X_SOC
+	&ls1x_pcm_pdev,
+#endif
 };
 
 static int __init ls1a_platform_init(void)

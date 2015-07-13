@@ -564,6 +564,40 @@ struct platform_device ls1x_fb1_pdev = {
 #endif	//#ifdef CONFIG_LS1X_FB1
 #endif	//#if defined(CONFIG_FB_LOONGSON1)
 
+#ifdef CONFIG_SND_LS1X_SOC_AC97
+static struct resource ls1x_ac97_resource[] = {
+	[0]={
+		.start	= LS1X_AC97_BASE,
+		.end	= LS1X_AC97_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1]={
+		.start	= LS1X_AC97_IRQ,
+		.end	= LS1X_AC97_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+struct platform_device ls1x_ac97_pdev = {
+	.name           = "ls1x-ac97",
+	.id             = -1,
+	.num_resources	= ARRAY_SIZE(ls1x_ac97_resource),
+	.resource		= ls1x_ac97_resource,
+};
+
+struct platform_device ls1x_stac_pdev = {
+	.name		= "ac97-codec",
+	.id		= -1,
+};
+#endif
+
+#ifdef CONFIG_SND_LS1X_SOC
+struct platform_device ls1x_pcm_pdev = {
+	.name = "loongson1-pcm-audio",
+	.id = -1,
+};
+#endif
+
 #ifdef CONFIG_PWM_LS1X_PWM0
 static struct resource ls1x_pwm0_resource[] = {
 	[0] = {
