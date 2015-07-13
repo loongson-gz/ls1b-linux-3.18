@@ -18,6 +18,7 @@
 
 #include <loongson1.h>
 
+/* 8250/16550 compatible UART */
 #define LS1X_UART(_id)						\
 	{							\
 		.mapbase	= LS1X_UART ## _id ## _BASE,	\
@@ -27,11 +28,44 @@
 		.type		= PORT_16550A,			\
 	}
 
+#define LS1X_UART_SHARE(_id, _irq)						\
+	{							\
+		.mapbase	= LS1X_UART ## _id ## _BASE,	\
+		.irq		= LS1X_UART ## _irq ## _IRQ,	\
+		.iotype		= UPIO_MEM,			\
+		.flags		= UPF_IOREMAP | UPF_FIXED_TYPE | UPF_SHARE_IRQ,	\
+		.type		= PORT_16550A,			\
+	}
+
 static struct plat_serial8250_port ls1x_serial8250_port[] = {
 	LS1X_UART(0),
 	LS1X_UART(1),
 	LS1X_UART(2),
 	LS1X_UART(3),
+#if defined(CONFIG_LOONGSON1_LS1B)
+	LS1X_UART(4),
+	LS1X_UART(5),
+#ifdef CONFIG_MULTIFUNC_CONFIG_SERAIL0
+	LS1X_UART_SHARE(6, 0),
+	LS1X_UART_SHARE(7, 0),
+	LS1X_UART_SHARE(8, 0),
+#endif
+#ifdef CONFIG_MULTIFUNC_CONFIG_SERAIL1
+	LS1X_UART_SHARE(9, 1),
+	LS1X_UART_SHARE(10, 1),
+	LS1X_UART_SHARE(11, 1),
+#endif
+
+#elif defined(CONFIG_LOONGSON1_LS1C)
+	LS1X_UART(4),
+	LS1X_UART(5),
+	LS1X_UART(6),
+	LS1X_UART(7),
+	LS1X_UART(8),
+	LS1X_UART(9),
+	LS1X_UART(10),
+	LS1X_UART(11),
+#endif
 	{},
 };
 
@@ -47,6 +81,34 @@ void __init ls1x_serial_setup(struct platform_device *pdev)
 {
 	struct clk *clk;
 	struct plat_serial8250_port *p;
+
+#ifdef CONFIG_MULTIFUNC_CONFIG_SERAIL0
+	__raw_writeb(__raw_readb(UART_SPLIT) | 0x01, UART_SPLIT);
+#endif
+#ifdef CONFIG_MULTIFUNC_CONFIG_SERAIL1
+	__raw_writeb(__raw_readb(UART_SPLIT) | 0x02, UART_SPLIT);
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) | UART1_3_USE_CAN1 | UART1_2_USE_CAN0, 
+				LS1X_MUX_CTRL1);
+#endif
+
+	/* LS1C如果要使用开发板的串口7 和串口8，则使能以下设置，开发板
+	开发板的串口7 和串口8与IIS控制器复用(gpio87-90)  注意需要把
+	内核的IIS控制器驱动选项关掉 。注意跳线设置，根据实际情况修改 */
+#if 0
+	__raw_writel(__raw_readl(LS1X_CBUS_FIRST2)   & 0xF87FFFFF, LS1X_CBUS_FIRST2);
+	__raw_writel(__raw_readl(LS1X_CBUS_SECOND2)  & 0xF87FFFFF, LS1X_CBUS_SECOND2);
+	__raw_writel(__raw_readl(LS1X_CBUS_THIRD2)   & 0xF87FFFFF, LS1X_CBUS_THIRD2);
+	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT2) & 0xF87FFFFF, LS1X_CBUS_FOURTHT2);
+	__raw_writel(__raw_readl(LS1X_CBUS_FIFTHT2)  | 0x07800000, LS1X_CBUS_FIFTHT2);
+#endif
+#if 0
+	/* LS1C UART0 */
+	__raw_writel(__raw_readl(LS1X_CBUS_FIRST2)   & 0xFFFFF3FF, LS1X_CBUS_FIRST2);
+	__raw_writel(__raw_readl(LS1X_CBUS_SECOND2)  | 0x00000C00, LS1X_CBUS_SECOND2);
+	__raw_writel(__raw_readl(LS1X_CBUS_THIRD2)   & 0xFFFFF3FF, LS1X_CBUS_THIRD2);
+	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT2) & 0xFFFFF3FF, LS1X_CBUS_FOURTHT2);
+	__raw_writel(__raw_readl(LS1X_CBUS_FIFTHT2)  & 0xFFFFF3FF, LS1X_CBUS_FIFTHT2);
+#endif
 
 	clk = clk_get(NULL, pdev->name);
 	if (IS_ERR(clk))
