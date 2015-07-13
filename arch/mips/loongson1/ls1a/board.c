@@ -160,6 +160,52 @@ struct ls1x_i2c_platform_data ls1x_i2c2_data = {
 };
 #endif
 
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#include <linux/can/platform/sja1000.h>
+static void ls1x_can_setup(void)
+{
+	struct sja1000_platform_data *sja1000_pdata;
+	struct clk *clk;
+	u32 x;
+
+	clk = clk_get(NULL, "apb_clk");
+	if (IS_ERR(clk))
+		panic("unable to get apb clock, err=%ld", PTR_ERR(clk));
+
+	#ifdef CONFIG_LS1X_CAN0
+	sja1000_pdata = &ls1x_sja1000_platform_data_0;
+	sja1000_pdata->osc_freq = clk_get_rate(clk);
+	#endif
+	#ifdef CONFIG_LS1X_CAN1
+	sja1000_pdata = &ls1x_sja1000_platform_data_1;
+	sja1000_pdata->osc_freq = clk_get_rate(clk);
+	#endif
+
+	#ifdef CONFIG_LS1X_CAN0
+	/* CAN0复用设置 */
+/*	gpio_request(66, NULL);
+	gpio_request(67, NULL);
+	gpio_free(66);
+	gpio_free(67);*/
+	/* 清除与 I2C3 SPI0的复用  */
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x = x & (~(I2C3_USE_CAN0 | SPI0_USE_CAN0_TX | SPI0_USE_CAN0_RX));
+	__raw_writel(x, LS1X_MUX_CTRL0);
+	#endif
+	#ifdef CONFIG_LS1X_CAN1
+	/* CAN1复用设置 */
+/*	gpio_request(68, NULL);
+	gpio_request(69, NULL);
+	gpio_free(68);
+	gpio_free(69);*/
+	/* 清除与 I2C2 SPI1 nand的复用  */
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x = x & (~(NAND3_USE_CAN1 | I2C2_USE_CAN1 | SPI1_USE_CAN1_TX | SPI1_USE_CAN1_RX));
+	__raw_writel(x, LS1X_MUX_CTRL0);
+	#endif
+}
+#endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
+
 
 static struct platform_device *ls1a_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
@@ -209,18 +255,37 @@ static struct platform_device *ls1a_platform_devices[] __initdata = {
 #ifdef CONFIG_SND_LS1X_SOC
 	&ls1x_pcm_pdev,
 #endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#ifdef CONFIG_LS1X_CAN0
+	&ls1x_sja1000_0,
+#endif
+#ifdef CONFIG_LS1X_CAN1
+	&ls1x_sja1000_1,
+#endif
+#endif
 };
 
 static int __init ls1a_platform_init(void)
 {
 	int err;
+	int x __maybe_unused;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
 #if defined(CONFIG_SPI_LS1X_SPI0)
+	/* disable gpio40-43 */
+	__raw_writel(__raw_readl(LS1X_GPIO_CFG1) & ~(SPI0_MASK << SPI0_OFFSET), 
+			LS1X_GPIO_CFG1);
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x |= SPI0_USE_CAN0_TX;	/* 解除CAN片选复用 */
+	x |= SPI0_USE_CAN0_RX;	/* 解除CAN片选复用 */
+	__raw_writel(x, LS1X_MUX_CTRL0);
 	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
 #endif
 #if defined(CONFIG_SPI_LS1X_SPI1)
 	spi_register_board_info(ls1x_spi1_devices, ARRAY_SIZE(ls1x_spi1_devices));
+#endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+	ls1x_can_setup();
 #endif
 
 	err = platform_add_devices(ls1a_platform_devices,

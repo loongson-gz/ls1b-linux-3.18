@@ -299,6 +299,37 @@ static struct platform_device ls1x_gpio_keys = {
 };
 #endif
 
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#include <linux/can/platform/sja1000.h>
+static void ls1x_can_setup(void)
+{
+	struct sja1000_platform_data *sja1000_pdata;
+	struct clk *clk;
+
+	clk = clk_get(NULL, "apb_clk");
+	if (IS_ERR(clk))
+		panic("unable to get apb clock, err=%ld", PTR_ERR(clk));
+
+	#ifdef CONFIG_LS1X_CAN0
+	sja1000_pdata = &ls1x_sja1000_platform_data_0;
+	sja1000_pdata->osc_freq = clk_get_rate(clk);
+	#endif
+	#ifdef CONFIG_LS1X_CAN1
+	sja1000_pdata = &ls1x_sja1000_platform_data_1;
+	sja1000_pdata->osc_freq = clk_get_rate(clk);
+	#endif
+
+	/* 设置复用关系 can0 gpio54/55 */
+	__raw_writel(__raw_readl(LS1X_CBUS_FIRST1) & (~0x00c00000), LS1X_CBUS_FIRST1);
+	__raw_writel(__raw_readl(LS1X_CBUS_SECOND1) & (~0x00c00000), LS1X_CBUS_SECOND1);
+	__raw_writel(__raw_readl(LS1X_CBUS_THIRD1) | 0x00c00000, LS1X_CBUS_THIRD1);
+	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT1) & (~0x00c00000), LS1X_CBUS_FOURTHT1);
+
+	/* 使能can0控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~CAN0_SHUT), LS1X_MUX_CTRL0);
+}
+#endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
+
 #ifdef CONFIG_LEDS_PWM
 #include <linux/pwm.h>
 #include <linux/leds_pwm.h>
@@ -432,6 +463,14 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	&ls1x_gpio_beeper,
 #endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#ifdef CONFIG_LS1X_CAN0
+	&ls1x_sja1000_0,
+#endif
+#ifdef CONFIG_LS1X_CAN1
+	&ls1x_sja1000_1,
+#endif
+#endif
 };
 
 static int __init ls1c_platform_init(void)
@@ -441,6 +480,9 @@ static int __init ls1c_platform_init(void)
 	ls1x_serial_setup(&ls1x_uart_pdev);
 #if defined(CONFIG_SPI_LS1X_SPI0)
 	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
+#endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+	ls1x_can_setup();
 #endif
 #ifdef CONFIG_I2C_OCORES
 	ls1x_i2c_setup();

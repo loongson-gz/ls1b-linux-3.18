@@ -249,6 +249,61 @@ struct platform_device ls1x_gpio_beeper = {
 };
 #endif
 
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#include <linux/can/platform/sja1000.h>
+static void ls1x_can_setup(void)
+{
+	struct sja1000_platform_data *sja1000_pdata;
+	struct clk *clk;
+	u32 x;
+
+	clk = clk_get(NULL, "apb_clk");
+	if (IS_ERR(clk))
+		panic("unable to get apb clock, err=%ld", PTR_ERR(clk));
+
+	#ifdef CONFIG_LS1X_CAN0
+	sja1000_pdata = &ls1x_sja1000_platform_data_0;
+	sja1000_pdata->osc_freq = clk_get_rate(clk);
+	#endif
+	#ifdef CONFIG_LS1X_CAN1
+	sja1000_pdata = &ls1x_sja1000_platform_data_1;
+	sja1000_pdata->osc_freq = clk_get_rate(clk);
+	#endif
+
+	#ifdef CONFIG_LS1X_CAN0
+	/* CAN0复用设置 */
+/*	gpio_request(38, NULL);
+	gpio_request(39, NULL);
+	gpio_free(38);
+	gpio_free(39);*/
+	/* 清除与 SPI1 UART1_2 的复用  */
+	x = __raw_readl(LS1X_MUX_CTRL1);
+	x = x & (~SPI1_USE_CAN) & (~UART1_2_USE_CAN0);
+	__raw_writel(x, LS1X_MUX_CTRL1);
+	/* 清除与 I2C1 的复用  */
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x = x & (~I2C1_USE_CAN0);
+	__raw_writel(x, LS1X_MUX_CTRL0);
+	#endif
+	#ifdef CONFIG_LS1X_CAN1
+	/* CAN1复用设置 */
+/*	gpio_request(40, NULL);
+	gpio_request(41, NULL);
+	gpio_free(40);
+	gpio_free(41);*/
+	/* 清除与 SPI1 UART1_3 的复用  */
+	x = __raw_readl(LS1X_MUX_CTRL1);
+	x = x & (~SPI1_USE_CAN) & (~UART1_3_USE_CAN1);
+	__raw_writel(x, LS1X_MUX_CTRL1);
+	/* 清除与 I2C2 的复用  */
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x = x & (~I2C2_USE_CAN1);
+	__raw_writel(x, LS1X_MUX_CTRL0);
+	#endif
+}
+#endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
+
+
 static struct platform_device *ls1b_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
 #ifdef CONFIG_MTD_NAND_LS1X
@@ -312,6 +367,14 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	&ls1x_gpio_beeper,
 #endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#ifdef CONFIG_LS1X_CAN0
+	&ls1x_sja1000_0,
+#endif
+#ifdef CONFIG_LS1X_CAN1
+	&ls1x_sja1000_1,
+#endif
+#endif
 };
 
 static int __init ls1b_platform_init(void)
@@ -321,6 +384,9 @@ static int __init ls1b_platform_init(void)
 	ls1x_serial_setup(&ls1x_uart_pdev);
 #if defined(CONFIG_SPI_LS1X_SPI0)
 	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
+#endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+	ls1x_can_setup();
 #endif
 
 /* 根据需要修改复用关系，gma0需要用到pwm01 gmac1需要用到pwm23，可能需要把pwm或gmac的驱动选项关闭 */

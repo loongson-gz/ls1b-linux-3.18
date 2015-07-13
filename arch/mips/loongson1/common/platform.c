@@ -752,3 +752,63 @@ struct platform_device ls1x_i2c0_pdev = {
 	}
 };
 #endif	//#ifdef CONFIG_I2C_OCORES
+
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+#include <linux/can/platform/sja1000.h>
+#ifdef CONFIG_LS1X_CAN0
+static struct resource ls1x_sja1000_resources_0[] = {
+	{
+		.start   = LS1X_CAN0_BASE,
+		.end     = LS1X_CAN0_BASE + SZ_16K - 1,
+		.flags   = IORESOURCE_MEM | IORESOURCE_MEM_8BIT,
+	}, {
+		.start   = LS1X_CAN0_IRQ,
+		.end     = LS1X_CAN0_IRQ,
+		.flags   = IORESOURCE_IRQ,
+	},
+};
+
+struct sja1000_platform_data ls1x_sja1000_platform_data_0 = {
+	.ocr		= OCR_TX1_PULLDOWN | OCR_TX0_PUSHPULL,
+	.cdr		= CDR_CBP,
+};
+
+struct platform_device ls1x_sja1000_0 = {
+	.name = "sja1000_platform",
+	.id = 0,
+	.dev = {
+		.platform_data = &ls1x_sja1000_platform_data_0,
+	},
+	.resource = ls1x_sja1000_resources_0,
+	.num_resources = ARRAY_SIZE(ls1x_sja1000_resources_0),
+};
+#endif	//#ifdef CONFIG_LS1X_CAN0
+#ifdef CONFIG_LS1X_CAN1
+static struct resource ls1x_sja1000_resources_1[] = {
+	{
+		.start   = LS1X_CAN1_BASE,
+		.end     = LS1X_CAN1_BASE + SZ_16K - 1,
+		.flags   = IORESOURCE_MEM | IORESOURCE_MEM_8BIT,
+	}, {
+		.start   = LS1X_CAN1_IRQ,
+		.end     = LS1X_CAN1_IRQ,
+		.flags   = IORESOURCE_IRQ,
+	},
+};
+
+struct sja1000_platform_data ls1x_sja1000_platform_data_1 = {
+	.ocr		= OCR_TX1_PULLDOWN | OCR_TX0_PUSHPULL,
+	.cdr		= CDR_CBP,
+};
+
+struct platform_device ls1x_sja1000_1 = {
+	.name = "sja1000_platform",
+	.id = 1,
+	.dev = {
+		.platform_data = &ls1x_sja1000_platform_data_1,
+	},
+	.resource = ls1x_sja1000_resources_1,
+	.num_resources = ARRAY_SIZE(ls1x_sja1000_resources_1),
+};
+#endif //#ifdef CONFIG_LS1X_CAN1
+#endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
