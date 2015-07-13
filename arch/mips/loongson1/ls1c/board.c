@@ -299,6 +299,58 @@ static struct platform_device ls1x_gpio_keys = {
 };
 #endif
 
+#ifdef CONFIG_LEDS_PWM
+#include <linux/pwm.h>
+#include <linux/leds_pwm.h>
+static struct pwm_lookup pwm_lookup[] = {
+	/* LEDB -> PMU_STAT */
+	PWM_LOOKUP("ls1x-pwm.0", 0, "leds_pwm", "ls1x_pwm_led0",
+			7812500, PWM_POLARITY_NORMAL),
+	PWM_LOOKUP("ls1x-pwm.1", 0, "leds_pwm", "ls1x_pwm_led1",
+			7812500, PWM_POLARITY_NORMAL),
+/*	PWM_LOOKUP("ls1x-pwm.2", 0, "leds_pwm", "ls1x_pwm_led2",
+			7812500, PWM_POLARITY_NORMAL),
+	PWM_LOOKUP("ls1x-pwm.3", 0, "leds_pwm", "ls1x_pwm_led3",
+			7812500, PWM_POLARITY_NORMAL),*/
+};
+
+static struct led_pwm ls1x_pwm_leds[] = {
+	{
+		.name		= "ls1x_pwm_led0",
+		.max_brightness	= 255,
+		.pwm_period_ns	= 7812500,
+	},
+	{
+		.name		= "ls1x_pwm_led1",
+		.max_brightness	= 255,
+		.pwm_period_ns	= 7812500,
+	},
+/*	{
+		.name		= "ls1x_pwm_led2",
+		.max_brightness	= 255,
+		.pwm_period_ns	= 7812500,
+	},
+	{
+		.name		= "ls1x_pwm_led3",
+		.max_brightness	= 255,
+		.pwm_period_ns	= 7812500,
+	},*/
+};
+
+static struct led_pwm_platform_data ls1x_pwm_data = {
+	.num_leds	= ARRAY_SIZE(ls1x_pwm_leds),
+	.leds		= ls1x_pwm_leds,
+};
+
+static struct platform_device ls1x_leds_pwm = {
+	.name	= "leds_pwm",
+	.id		= -1,
+	.dev	= {
+		.platform_data = &ls1x_pwm_data,
+	},
+};
+#endif //#ifdef CONFIG_LEDS_PWM
+
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 #include <linux/gpio.h>
 #include <linux/gpio/machine.h>
@@ -362,6 +414,21 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #ifdef CONFIG_BACKLIGHT_GPIO
 	&ls1x_bl_pdev,
 #endif
+#ifdef CONFIG_PWM_LS1X_PWM0
+	&ls1x_pwm0_pdev,
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM1
+	&ls1x_pwm1_pdev,
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM2
+	&ls1x_pwm2_pdev,
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM3
+	&ls1x_pwm3_pdev,
+#endif
+#ifdef CONFIG_LEDS_PWM
+	&ls1x_leds_pwm,
+#endif
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	&ls1x_gpio_beeper,
 #endif
@@ -379,6 +446,20 @@ static int __init ls1c_platform_init(void)
 	ls1x_i2c_setup();
 #endif
 
+	/* 根据需要修改复用引脚关系 */
+#if defined(CONFIG_PWM_LS1X_PWM0) || defined(CONFIG_PWM_LS1X_PWM1)
+
+#endif
+#if defined(CONFIG_PWM_LS1X_PWM2) || defined(CONFIG_PWM_LS1X_PWM3)
+	__raw_writel(__raw_readl(LS1X_CBUS_FIRST1) & (~0x00300000), LS1X_CBUS_FIRST1);
+	__raw_writel(__raw_readl(LS1X_CBUS_SECOND1) & (~0x00300000), LS1X_CBUS_SECOND1);
+	__raw_writel(__raw_readl(LS1X_CBUS_THIRD1) & (~0x00300000), LS1X_CBUS_THIRD1);
+	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT1) | 0x00300000, LS1X_CBUS_FOURTHT1);
+	__raw_writel(__raw_readl(LS1X_CBUS_FIFTHT1) & (~0x00300000), LS1X_CBUS_THIRD1);
+#endif
+#ifdef CONFIG_LEDS_PWM
+	pwm_add_table(pwm_lookup, ARRAY_SIZE(pwm_lookup));
+#endif
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	gpiod_add_lookup_table(&buzzer_gpio_table);
 #endif

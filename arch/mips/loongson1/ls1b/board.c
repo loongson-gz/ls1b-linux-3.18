@@ -161,6 +161,44 @@ struct ls1x_i2c_platform_data ls1x_i2c2_data = {
 };
 #endif
 
+#ifdef CONFIG_LEDS_PWM
+#include <linux/pwm.h>
+#include <linux/leds_pwm.h>
+static struct pwm_lookup pwm_lookup[] = {
+	/* LEDB -> PMU_STAT */
+	PWM_LOOKUP("ls1x-pwm.2", 0, "leds_pwm", "ls1x_pwm_led2",
+			7812500, PWM_POLARITY_NORMAL),
+	PWM_LOOKUP("ls1x-pwm.3", 0, "leds_pwm", "ls1x_pwm_led3",
+			7812500, PWM_POLARITY_NORMAL),
+};
+
+static struct led_pwm ls1x_pwm_leds[] = {
+	{
+		.name		= "ls1x_pwm_led2",
+		.max_brightness	= 255,
+		.pwm_period_ns	= 7812500,
+	},
+	{
+		.name		= "ls1x_pwm_led3",
+		.max_brightness	= 255,
+		.pwm_period_ns	= 7812500,
+	},
+};
+
+static struct led_pwm_platform_data ls1x_pwm_data = {
+	.num_leds	= ARRAY_SIZE(ls1x_pwm_leds),
+	.leds		= ls1x_pwm_leds,
+};
+
+static struct platform_device ls1x_leds_pwm = {
+	.name	= "leds_pwm",
+	.id		= -1,
+	.dev	= {
+		.platform_data = &ls1x_pwm_data,
+	},
+};
+#endif //#ifdef CONFIG_LEDS_PWM
+
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 #include <linux/leds.h>
 static struct gpio_led gpio_leds[] = {
@@ -246,6 +284,21 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 #ifdef CONFIG_LS1X_FB0
 	&ls1x_fb0_pdev,
 #endif
+#ifdef CONFIG_PWM_LS1X_PWM0
+	&ls1x_pwm0_pdev,
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM1
+	&ls1x_pwm1_pdev,
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM2
+	&ls1x_pwm2_pdev,
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM3
+	&ls1x_pwm3_pdev,
+#endif
+#ifdef CONFIG_LEDS_PWM
+	&ls1x_leds_pwm,
+#endif
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 	&leds,
 #endif
@@ -263,6 +316,32 @@ static int __init ls1b_platform_init(void)
 	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
 #endif
 
+/* 根据需要修改复用关系，gma0需要用到pwm01 gmac1需要用到pwm23，可能需要把pwm或gmac的驱动选项关闭 */
+#if defined(CONFIG_PWM_LS1X_PWM0) || defined(CONFIG_PWM_LS1X_PWM1)
+	{
+	u32 x;
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x = x & (~UART0_USE_PWM01) & (~NAND3_USE_PWM01) & (~NAND2_USE_PWM01) & (~NAND1_USE_PWM01);
+	__raw_writel(x, LS1X_MUX_CTRL0);
+	x = __raw_readl(LS1X_MUX_CTRL1);
+	x = x & (~SPI1_CS_USE_PWM01) & (~GMAC0_USE_PWM01);
+	__raw_writel(x, LS1X_MUX_CTRL1);
+	}
+#endif
+#if defined(CONFIG_PWM_LS1X_PWM2) || defined(CONFIG_PWM_LS1X_PWM3)
+	{
+	u32 x;
+	x = __raw_readl(LS1X_MUX_CTRL0);
+	x = x & (~UART0_USE_PWM23) & (~NAND3_USE_PWM23) & (~NAND2_USE_PWM23) & (~NAND1_USE_PWM23);
+	__raw_writel(x, LS1X_MUX_CTRL0);
+	x = __raw_readl(LS1X_MUX_CTRL1);
+	x = x & (~GMAC1_USE_PWM23);
+	__raw_writel(x, LS1X_MUX_CTRL1);
+	}
+#endif
+#ifdef CONFIG_LEDS_PWM
+	pwm_add_table(pwm_lookup, ARRAY_SIZE(pwm_lookup));
+#endif
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	gpiod_add_lookup_table(&buzzer_gpio_table);
 #endif

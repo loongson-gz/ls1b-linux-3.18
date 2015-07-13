@@ -564,6 +564,73 @@ struct platform_device ls1x_fb1_pdev = {
 #endif	//#ifdef CONFIG_LS1X_FB1
 #endif	//#if defined(CONFIG_FB_LOONGSON1)
 
+#ifdef CONFIG_PWM_LS1X_PWM0
+static struct resource ls1x_pwm0_resource[] = {
+	[0] = {
+		.start	= LS1X_PWM0_BASE,
+		.end	= LS1X_PWM0_BASE + 0xf,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_pwm0_pdev = {
+	.name		= "ls1x-pwm",
+	.id		= 0,
+	.resource	= ls1x_pwm0_resource,
+	.num_resources	= ARRAY_SIZE(ls1x_pwm0_resource),
+};
+#endif
+
+#ifdef CONFIG_PWM_LS1X_PWM1
+static struct resource ls1x_pwm1_resource[] = {
+	[0] = {
+		.start	= LS1X_PWM1_BASE,
+		.end	= LS1X_PWM1_BASE + 0xf,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_pwm1_pdev = {
+	.name		= "ls1x-pwm",
+	.id		= 1,
+	.resource	= ls1x_pwm1_resource,
+	.num_resources	= ARRAY_SIZE(ls1x_pwm1_resource),
+};
+#endif
+
+#ifdef CONFIG_PWM_LS1X_PWM2
+static struct resource ls1x_pwm2_resource[] = {
+	[0] = {
+		.start	= LS1X_PWM2_BASE,
+		.end	= LS1X_PWM2_BASE + 0xf,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_pwm2_pdev = {
+	.name		= "ls1x-pwm",
+	.id		= 2,
+	.resource	= ls1x_pwm2_resource,
+	.num_resources	= ARRAY_SIZE(ls1x_pwm2_resource),
+};
+#endif
+#ifdef CONFIG_PWM_LS1X_PWM3
+static struct resource ls1x_pwm3_resource[] = {
+	[0] = {
+		.start	= LS1X_PWM3_BASE,
+		.end	= LS1X_PWM3_BASE + 0xf,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device ls1x_pwm3_pdev = {
+	.name		= "ls1x-pwm",
+	.id		= 3,
+	.resource	= ls1x_pwm3_resource,
+	.num_resources	= ARRAY_SIZE(ls1x_pwm3_resource),
+};
+#endif
+
 #ifdef CONFIG_I2C_LS1X
 extern struct ls1x_i2c_platform_data ls1x_i2c0_data;
 static struct resource ls1x_i2c0_resource[] = {
