@@ -1450,7 +1450,15 @@ CONFIG_USB_STORAGE=y
 # CONFIG_USBIP_CORE is not set
 # CONFIG_USB_MUSB_HDRC is not set
 # CONFIG_USB_DWC3 is not set
-# CONFIG_USB_DWC2 is not set
+CONFIG_USB_DWC2=y
+CONFIG_USB_DWC2_HOST=y
+CONFIG_USB_DWC2_PLATFORM=y
+
+#
+# Gadget mode requires USB Gadget support to be enabled
+#
+# CONFIG_USB_DWC2_DEBUG is not set
+# CONFIG_USB_DWC2_TRACK_MISSED_SOFS is not set
 # CONFIG_USB_CHIPIDEA is not set
 
 #
@@ -1697,6 +1705,7 @@ CONFIG_RESET_CONTROLLER=y
 #
 # CONFIG_GENERIC_PHY is not set
 # CONFIG_BCM_KONA_USB2_PHY is not set
+# CONFIG_PHY_SAMSUNG_USB2 is not set
 # CONFIG_POWERCAP is not set
 # CONFIG_MCB is not set
 

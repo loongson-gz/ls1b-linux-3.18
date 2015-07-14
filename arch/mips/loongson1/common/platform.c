@@ -874,3 +874,51 @@ struct platform_device ls1x_sja1000_1 = {
 };
 #endif //#ifdef CONFIG_LS1X_CAN1
 #endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
+
+#ifdef CONFIG_USB_DWC2
+#include <linux/platform_data/s3c-hsotg.h>
+static int ls1x_otg_phy_init(struct platform_device *pdev, int type)
+{
+	return 0;
+}
+
+static int ls1x_otg_phy_exit(struct platform_device *pdev, int type)
+{
+	return 0;
+}
+
+static struct s3c_hsotg_plat ls1x_otg_platform_data = {
+	.dma = S3C_HSOTG_DMA_NONE,
+	.is_osc = 1,
+	.phy_type = 1,
+	.phy_init = &ls1x_otg_phy_init,
+	.phy_exit = &ls1x_otg_phy_exit,
+};
+
+static struct resource ls1x_otg_resources[] = {
+	[0] = {
+		.start	= LS1X_OTG_BASE,
+		.end	= LS1X_OTG_BASE + SZ_64K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1] = {
+		.start	= LS1X_OTG_IRQ,
+        .end	= LS1X_OTG_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+static u64 ls1x_otg_dmamask = DMA_BIT_MASK(32);
+
+struct platform_device ls1x_otg_pdev = {
+	.name		= "dwc2",
+	.id			= -1,
+	.num_resources	= ARRAY_SIZE(ls1x_otg_resources),
+	.resource	= ls1x_otg_resources,
+	.dev		= {
+		.dma_mask		= &ls1x_otg_dmamask,
+		.coherent_dma_mask	= DMA_BIT_MASK(32),
+		.platform_data = &ls1x_otg_platform_data,
+	},
+};
+#endif
