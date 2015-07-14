@@ -299,6 +299,37 @@ static struct platform_device ls1x_gpio_keys = {
 };
 #endif
 
+#if defined(CONFIG_MMC_LS1X)
+#include <linux/mmc/host.h>
+#include <mci.h>
+#define SDIO_WP_GPIO  32
+#define SDIO_DETECT_GPIO  84
+/* 轮询方式探测card的插拔 */
+static int ls1x_sdio_get_ro(struct device *dev)
+{
+	return gpio_get_value(SDIO_WP_GPIO);
+}
+
+static int ls1x_sdio_get_cd(struct device *dev)
+{
+	return !gpio_get_value(SDIO_DETECT_GPIO);
+}
+
+struct ls1x_mci_pdata ls1x_sdio_parts = {
+	/* 中断方式方式探测card的插拔 */
+//	.init = ls1x_mmc_init,
+//	.exit = ls1x_mmc_exit,
+//	.detect_delay = 1200,	/* msecs */
+
+	/* 轮询方式方式探测card的插拔 */
+	.get_ro = ls1x_sdio_get_ro,
+	.get_cd = ls1x_sdio_get_cd,
+	.caps = MMC_CAP_NEEDS_POLL,
+
+//	.max_clk = 17000000, /* 部分sd卡可能会出现读写错误，可以尝试降低提供给sd卡的频率 */
+};
+#endif //CONFIG_MTD_SDIO_LS1X
+
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #include <linux/can/platform/sja1000.h>
 static void ls1x_can_setup(void)
@@ -466,6 +497,9 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	&ls1x_gpio_beeper,
 #endif
+#if defined(CONFIG_MMC_LS1X)
+	&ls1x_sdio_pdev,
+#endif
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #ifdef CONFIG_LS1X_CAN0
 	&ls1x_sja1000_0,
@@ -489,6 +523,14 @@ static int __init ls1c_platform_init(void)
 #endif
 #ifdef CONFIG_I2C_OCORES
 	ls1x_i2c_setup();
+#endif
+
+#if defined(CONFIG_MMC_LS1X)
+	/* 轮询方式或中断方式探测card的插拔 */
+	gpio_request(SDIO_WP_GPIO, "ls1x sdio wp");
+	gpio_direction_input(SDIO_WP_GPIO);
+	gpio_request(SDIO_DETECT_GPIO, "ls1x sdio detect");
+	gpio_direction_input(SDIO_DETECT_GPIO);
 #endif
 
 	/* 根据需要修改复用引脚关系 */

@@ -213,4 +213,5 @@ void __init ls1x_clk_init(void)
 	clk_register_clkdev(clk, "ls1x_spi", NULL);
 	clk_register_clkdev(clk, "ls1x_wdt", NULL);
 	clk_register_clkdev(clk, "serial8250", NULL);
+	clk_register_clkdev(clk, "ls1x_sdio", NULL);
 }
