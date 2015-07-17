@@ -372,6 +372,36 @@ struct platform_device ls1x_ehci_pdev = {
 };
 #endif
 
+/* AHCI */
+#if defined(CONFIG_SATA_AHCI_PLATFORM)
+#include <linux/ahci_platform.h>
+static struct resource ls1x_ahci_resource[] = {
+	[0] = {
+		.start	= LS1X_SATA_BASE,
+		.end	= LS1X_SATA_BASE + SZ_64K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1] = {
+		.start	= LS1X_SATA_IRQ,
+		.end	= LS1X_SATA_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+static u64 ls1x_ahci_dmamask = DMA_BIT_MASK(32);
+
+struct platform_device ls1x_ahci_pdev = {
+	.name		= "ahci",
+	.id		= 0,
+	.resource	= ls1x_ahci_resource,
+	.num_resources	= ARRAY_SIZE(ls1x_ahci_resource),
+	.dev		= {
+		.dma_mask		= &ls1x_ahci_dmamask,
+		.coherent_dma_mask	= DMA_BIT_MASK(32),
+	},
+};
+#endif
+
 /* Real Time Clock */
 #ifdef CONFIG_RTC_DRV_RTC_LOONGSON1
 static struct resource ls1x_rtc_resource[] = {

@@ -224,6 +224,9 @@ static struct platform_device *ls1a_platform_devices[] __initdata = {
 #ifdef CONFIG_USB_EHCI_HCD_PLATFORM
 	&ls1x_ehci_pdev,
 #endif
+#if defined(CONFIG_SATA_AHCI_PLATFORM)
+	&ls1x_ahci_pdev,
+#endif
 #ifdef CONFIG_RTC_DRV_RTC_LOONGSON1
 	&ls1x_rtc_pdev,
 #endif
@@ -287,6 +290,15 @@ static int __init ls1a_platform_init(void)
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 	ls1x_can_setup();
 #endif
+//#if defined(CONFIG_SATA_AHCI_PLATFORM)
+	#define AHCI_CLOCK_25MHZ	0x34682650
+	#define AHCI_CLOCK_50MHZ	0x30682650
+	#define AHCI_CLOCK_100MHZ	0x38682650
+	#define AHCI_CLOCK_125MHZ	0x38502650
+	#define LS1A_REF_CLK	((void __iomem *)CKSEG1ADDR(0x1fd00418))
+
+	writel(AHCI_CLOCK_125MHZ, LS1A_REF_CLK);
+//#endif
 
 	err = platform_add_devices(ls1a_platform_devices,
 				   ARRAY_SIZE(ls1a_platform_devices));
