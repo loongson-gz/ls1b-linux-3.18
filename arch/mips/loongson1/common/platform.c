@@ -978,3 +978,25 @@ struct platform_device ls1x_otg_pdev = {
 	},
 };
 #endif
+
+#ifdef CONFIG_SENSORS_LS1X
+static struct resource ls1x_hwmon_resources[] = {
+	{
+		.start   = LS1X_ADC_BASE,
+		.end     = LS1X_ADC_BASE + SZ_16K - 1,
+		.flags   = IORESOURCE_MEM,
+	}, 
+/*	{
+		.start   = LS1X_ADC_IRQ,
+		.end     = LS1X_ADC_IRQ,
+		.flags   = IORESOURCE_IRQ,
+	},*/
+};
+
+struct platform_device ls1x_hwmon_pdev = {
+	.name		= "ls1x-hwmon",
+	.id		= -1,
+	.resource		= ls1x_hwmon_resources,
+	.num_resources	= ARRAY_SIZE(ls1x_hwmon_resources),
+};
+#endif

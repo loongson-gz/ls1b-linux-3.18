@@ -118,14 +118,17 @@
 
 /* sdio */
 #if defined(CONFIG_LOONGSON1_LS1C)
-#define LS1X_SDIO_BASE		0x1fe6c000
+#define LS1X_SDIO_BASE	0x1fe6c000
 #endif
 
 /* sata */
-#define LS1X_SATA_BASE			0x1fe30000
+#define LS1X_SATA_BASE	0x1fe30000
 
 /* PS2 */
-#define LS1X_PS2_BASE			0x1fe60000
+#define LS1X_PS2_BASE	0x1fe60000
+
+/* ADC */
+#define LS1X_ADC_BASE	0x1fe74000
 
 #include <regs-clk.h>
 #include <regs-mux.h>

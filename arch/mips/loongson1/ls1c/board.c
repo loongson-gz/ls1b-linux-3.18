@@ -430,6 +430,42 @@ struct platform_device ls1x_gpio_beeper = {
 };
 #endif
 
+#ifdef CONFIG_SENSORS_LS1X
+#include <hwmon.h>
+static struct ls1x_hwmon_pdata bast_hwmon_info = {
+	/* battery voltage (0-3.3V) */
+	.in[0] = &(struct ls1x_hwmon_chcfg) {
+		.name		= "battery-voltage",
+		.mult		= 3300,	/* 3.3V参考电压 */
+		.div		= 1024,
+		.single		= 1,
+	},
+	.in[1] = &(struct ls1x_hwmon_chcfg) {
+		.name		= "adc-d1",
+		.mult		= 3300,	/* 3.3V参考电压 */
+		.div		= 1024,
+		.single		= 1,
+	},
+};
+
+void ls1x_hwmon_set_platdata(struct ls1x_hwmon_pdata *pd)
+{
+	struct ls1x_hwmon_pdata *npd;
+
+	if (!pd) {
+		printk(KERN_ERR "%s: no platform data\n", __func__);
+		return;
+	}
+
+	npd = kmemdup(pd, sizeof(struct ls1x_hwmon_pdata), GFP_KERNEL);
+	if (!npd)
+		printk(KERN_ERR "%s: no memory for platform data\n", __func__);
+
+	ls1x_hwmon_pdev.dev.platform_data = npd;
+}
+#endif
+
+
 static struct platform_device *ls1c_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
 #ifdef CONFIG_MTD_NAND_LS1X
@@ -508,6 +544,9 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 	&ls1x_sja1000_1,
 #endif
 #endif
+#ifdef CONFIG_SENSORS_LS1X
+	&ls1x_hwmon_pdev,
+#endif
 };
 
 static int __init ls1c_platform_init(void)
@@ -549,6 +588,10 @@ static int __init ls1c_platform_init(void)
 #endif
 #ifdef CONFIG_INPUT_GPIO_BEEPER
 	gpiod_add_lookup_table(&buzzer_gpio_table);
+#endif
+
+#ifdef CONFIG_SENSORS_LS1X
+	ls1x_hwmon_set_platdata(&bast_hwmon_info);
 #endif
 
 	err = platform_add_devices(ls1c_platform_devices,

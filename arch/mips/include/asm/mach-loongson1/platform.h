@@ -49,8 +49,8 @@ extern struct sja1000_platform_data ls1x_sja1000_platform_data_0;
 extern struct sja1000_platform_data ls1x_sja1000_platform_data_1;
 
 extern struct platform_device ls1x_sdio_pdev;
-
 extern struct platform_device ls1x_otg_pdev;
+extern struct platform_device ls1x_hwmon_pdev;
 
 extern void __init ls1x_clk_init(void);
 extern void __init ls1x_serial_setup(struct platform_device *pdev);
