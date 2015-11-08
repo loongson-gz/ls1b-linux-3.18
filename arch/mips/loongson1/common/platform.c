@@ -126,7 +126,11 @@ static struct stmmac_mdio_bus_data ls1x_mdio_bus_data = {
 };
 
 static struct stmmac_dma_cfg ls1x_eth_dma_cfg = {
+#if defined(CONFIG_LOONGSON1_LS1B)
 	.pbl		= 1,
+#else
+	.pbl		= 32,
+#endif
 };
 
 int ls1x_eth_mux_init(struct platform_device *pdev, void *priv)
