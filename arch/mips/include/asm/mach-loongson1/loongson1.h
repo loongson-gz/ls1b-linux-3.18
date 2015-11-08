@@ -19,15 +19,15 @@
 #if defined(CONFIG_LOONGSON1_LS1A)
 #define OSC			33000000 /* Hz */
 #define DIV_APB		2
-#define PORT(offset)	(u8 *)(KSEG1ADDR(LS1X_UART2_BASE + offset))
-#elif defined(CONFIG_LOONGSON1_LS1B)
+#elif defined(CONFIG_LS1B_DEV_BOARD)
 #define OSC			33000000 /* Hz */
 #define DIV_APB		2
-#define PORT(offset)	(u8 *)(KSEG1ADDR(LS1X_UART2_BASE + offset))
+#elif defined(CONFIG_LS1B_CORE_BOARD)
+#define OSC			25000000 /* Hz */
+#define DIV_APB		2
 #elif defined(CONFIG_LOONGSON1_LS1C)
 #define OSC			24000000 /* Hz */
 #define DIV_APB		1
-#define PORT(offset)	(u8 *)(KSEG1ADDR(LS1X_UART3_BASE + offset))
 #endif
 
 /* display controller */

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2012 Zhang, Keguang <keguang.zhang@gmail.com>
+ * Copyright (c) 2015 Tang Haifeng <tanghaifeng-gz@loongson.cn> or <pengren.mcu@qq.com>
  *
  * This program is free software; you can redistribute  it and/or modify it
  * under  the terms of  the GNU General  Public License as published by the
@@ -15,6 +16,7 @@
 
 #include <loongson1.h>
 
+extern unsigned long ls1x_osc_clk;
 static DEFINE_SPINLOCK(_lock);
 
 static int ls1x_pll_clk_enable(struct clk_hw *hw)
@@ -33,14 +35,14 @@ static unsigned long ls1x_pll_recalc_rate(struct clk_hw *hw,
 
 	pll = __raw_readl(LS1X_CLK_PLL_FREQ);
 /*	rate = 12 + (pll & 0x3f) + (((pll >> 8) & 0x3ff) >> 10);
-	rate *= OSC;
+	rate *= ls1x_osc_clk;
 	rate >>= 1;*/
 
 #if defined(CONFIG_LOONGSON1_LS1C)
-	rate = (((pll >> 8) & 0xff) + ((pll >> 16) & 0xff)) * OSC / 4;
+	rate = (((pll >> 8) & 0xff) + ((pll >> 16) & 0xff)) * ls1x_osc_clk / 4;
 #else
-	rate = (12 + (pll & 0x3f)) * OSC / 2
-			+ ((pll >> 8) & 0x3ff) * OSC / 1024 / 2;
+	rate = (12 + (pll & 0x3f)) * ls1x_osc_clk / 2
+			+ ((pll >> 8) & 0x3ff) * ls1x_osc_clk / 1024 / 2;
 #endif
 
 	return rate;
@@ -94,7 +96,7 @@ void __init ls1x_clk_init(void)
 	u32 ctrl;
 
 	clk = clk_register_fixed_rate(NULL, "osc_clk", NULL, CLK_IS_ROOT,
-				      OSC);
+				      ls1x_osc_clk);
 	clk_register_clkdev(clk, "osc_clk", NULL);
 
 	/* clock derived from 33 MHz OSC clk */

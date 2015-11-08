@@ -16,6 +16,7 @@ config LOONGSON1_LS1A
 	select SYS_SUPPORTS_HIGHMEM
 	select SYS_SUPPORTS_MIPS16
 	select SYS_HAS_EARLY_PRINTK
+	select USE_GENERIC_EARLY_PRINTK_8250
 	select COMMON_CLK
 
 config LOONGSON1_LS1B
@@ -31,7 +32,23 @@ config LOONGSON1_LS1B
 	select SYS_SUPPORTS_HIGHMEM
 	select SYS_SUPPORTS_MIPS16
 	select SYS_HAS_EARLY_PRINTK
+	select USE_GENERIC_EARLY_PRINTK_8250
 	select COMMON_CLK
+
+if LOONGSON1_LS1B
+
+choice
+	prompt "Loongson LS1B board config"
+	default LS1B_DEV_BOARD
+
+config LS1B_DEV_BOARD
+	bool "LSGZ_1B_DEV board"
+
+config LS1B_CORE_BOARD
+	bool "LS1B_CORE board"
+endchoice
+
+endif
 
 config LOONGSON1_LS1C
 	bool "Loongson LS1C board"
@@ -46,6 +63,7 @@ config LOONGSON1_LS1C
 	select SYS_SUPPORTS_HIGHMEM
 	select SYS_SUPPORTS_MIPS16
 	select SYS_HAS_EARLY_PRINTK
+	select USE_GENERIC_EARLY_PRINTK_8250
 	select COMMON_CLK
 
 endchoice
