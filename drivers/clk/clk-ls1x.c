@@ -214,4 +214,8 @@ void __init ls1x_clk_init(void)
 	clk_register_clkdev(clk, "ls1x_wdt", NULL);
 	clk_register_clkdev(clk, "serial8250", NULL);
 	clk_register_clkdev(clk, "ls1x_sdio", NULL);
+
+	clk = clk_register_fixed_rate(NULL, "ls1x_i2s_mclk", NULL, CLK_IS_ROOT,
+				      22579200);
+	clk_register_clkdev(clk, "ls1x_i2s_mclk", NULL);
 }

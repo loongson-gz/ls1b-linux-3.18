@@ -61,6 +61,7 @@
 #define LS1X_SPI0_IRQ			LS1X_IRQ(0, 8)
 #define LS1X_SPI1_IRQ			LS1X_IRQ(0, 9)
 #define LS1X_AC97_IRQ			LS1X_IRQ(0, 10)
+#define LS1X_I2S_IRQ			LS1X_IRQ(0, 10)
 #define LS1X_MS_IRQ				LS1X_IRQ(0, 11)
 #define LS1X_KB_IRQ				LS1X_IRQ(0, 12)
 #define LS1X_DMA0_IRQ			LS1X_IRQ(0, 13)

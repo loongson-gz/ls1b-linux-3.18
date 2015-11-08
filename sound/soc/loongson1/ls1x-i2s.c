@@ -322,6 +322,10 @@ struct snd_soc_dai_driver ls1x_i2s_dai = {
 	.ops = &ls1x_i2s_dai_ops,
 };
 
+static const struct snd_soc_component_driver ls1x_i2s_component = {
+	.name		= "ls1x-i2s",
+};
+
 static int ls1x_i2s_dev_probe(struct platform_device *pdev)
 {
 	struct ls1x_i2s *i2s;
@@ -353,15 +357,16 @@ static int ls1x_i2s_dev_probe(struct platform_device *pdev)
 
 //	i2s->phys_base = i2s->mem->start;
 
-	i2s->clk_i2s = clk_get(&pdev->dev, "apb");
+	i2s->clk_i2s = clk_get(&pdev->dev, "apb_clk");
 	if (IS_ERR(i2s->clk_i2s)) {
 		ret = PTR_ERR(i2s->clk_i2s);
 		goto err_iounmap;
 	}
 
 	platform_set_drvdata(pdev, i2s);
-	ret = snd_soc_register_dai(&pdev->dev, &ls1x_i2s_dai);
 
+	ret = snd_soc_register_component(&pdev->dev, &ls1x_i2s_component,
+					  &ls1x_i2s_dai, 1);
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to register DAI\n");
 		goto err_clk_put_i2s;
@@ -381,11 +386,11 @@ err_free:
 	return ret;
 }
 
-static int __devexit ls1x_i2s_dev_remove(struct platform_device *pdev)
+static int ls1x_i2s_dev_remove(struct platform_device *pdev)
 {
 	struct ls1x_i2s *i2s = platform_get_drvdata(pdev);
 
-	snd_soc_unregister_dai(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 
 	clk_put(i2s->clk_i2s);
 
@@ -400,19 +405,19 @@ static int __devexit ls1x_i2s_dev_remove(struct platform_device *pdev)
 
 static struct platform_driver ls1x_i2s_driver = {
 	.probe = ls1x_i2s_dev_probe,
-	.remove = __devexit_p(ls1x_i2s_dev_remove),
+	.remove = ls1x_i2s_dev_remove,
 	.driver = {
 		.name = "ls1x-i2s",
 		.owner = THIS_MODULE,
 	},
 };
 
-static int __init ls1x_i2s_init(void)
+static int ls1x_i2s_init(void)
 {
 	return platform_driver_register(&ls1x_i2s_driver);
 }
 
-static void __exit ls1x_i2s_exit(void)
+static void ls1x_i2s_exit(void)
 {
 	platform_driver_unregister(&ls1x_i2s_driver);
 }

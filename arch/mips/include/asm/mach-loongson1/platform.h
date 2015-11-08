@@ -32,6 +32,7 @@ extern struct platform_device ls1x_fb1_pdev;
 
 extern struct platform_device ls1x_ac97_pdev;
 extern struct platform_device ls1x_stac_pdev;
+extern struct platform_device ls1x_i2s_pdev;
 extern struct platform_device ls1x_pcm_pdev;
 
 extern struct platform_device ls1x_pwm0_pdev;

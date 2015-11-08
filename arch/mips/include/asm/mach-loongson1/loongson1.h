@@ -97,6 +97,7 @@
 #define LS1X_RTC_BASE			0x1fe64000
 #if defined(CONFIG_LOONGSON1_LS1C)
 #define LS1X_AC97_BASE			0x1fe60000
+#define LS1X_I2S_BASE			0x1fe60000
 #else
 #define LS1X_AC97_BASE			0x1fe74000
 #endif

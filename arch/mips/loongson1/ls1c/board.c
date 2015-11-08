@@ -148,6 +148,11 @@ static struct i2c_board_info ls1x_i2c0_board_info[] = {
 		.platform_data = &i2c_pca9555_platdata,
 	},
 #endif
+#ifdef CONFIG_SND_SOC_ES8328
+	{
+		I2C_BOARD_INFO("es8328", 0x10),
+	},
+#endif
 };
 #endif
 
@@ -503,6 +508,12 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #endif
 #ifdef CONFIG_I2C_LS1X
 	&ls1x_i2c0_pdev,
+#endif
+#ifdef CONFIG_SND_LS1X_SOC_I2S
+	&ls1x_i2s_pdev,
+#endif
+#ifdef CONFIG_SND_LS1X_SOC
+	&ls1x_pcm_pdev,
 #endif
 #ifdef CONFIG_GPIO_PCA953X
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)

@@ -183,6 +183,7 @@ static irqreturn_t ls1x_ac97_irq(int irq, void *dev_id)
 #ifdef CONFIG_PM
 int ls1x_ac97_hw_suspend(void)
 {
+	struct ls1x_audio *state = &ls1x_audio_state;
 	u32 x;
 
 	x = readl(state->base + OCC0);
@@ -207,6 +208,7 @@ EXPORT_SYMBOL_GPL(ls1x_ac97_hw_suspend);
 
 int ls1x_ac97_hw_resume(void)
 {
+	struct ls1x_audio *state = &ls1x_audio_state;
 	u32 x;
 
 	x = readl(state->base + OCC0);

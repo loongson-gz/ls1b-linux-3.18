@@ -29,13 +29,13 @@ static int ls1x_i2s_startup(struct snd_pcm_substream *substream)
 
 	snd_soc_dai_set_sysclk(cpu_dai, 0, 34000000, SND_SOC_CLOCK_OUT);
 
-	snd_soc_dai_set_sysclk(codec_dai, 0, 22579600, SND_SOC_CLOCK_IN);
+//	snd_soc_dai_set_sysclk(codec_dai, 0, 22579600, SND_SOC_CLOCK_IN);
 
 	/* codec is bitclock and lrclk master */
-/*	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
+	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
 			SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS);
 	if (ret < 0)
-		goto out;*/
+		goto out;
 
 	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_I2S |
 			SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS);
@@ -52,12 +52,12 @@ static struct snd_soc_ops ls1x_i2s_uda1342_ops = {
 };
 
 static struct snd_soc_dai_link ls1x_i2s_dai = {
-	.name = "ls1x",
+	.name = "es8328",
 	.stream_name = "ls1x<->i2s",
 	.cpu_dai_name = "ls1x-i2s",
-	.codec_dai_name = "uda1342-hifi",
+	.codec_dai_name = "es8328-hifi-analog",
 	.platform_name = "loongson1-pcm-audio",
-	.codec_name = "uda1342-codec.0-001a",
+	.codec_name = "es8328.0-0010",
 	.ops = &ls1x_i2s_uda1342_ops,
 };
 

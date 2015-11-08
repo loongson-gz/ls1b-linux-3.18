@@ -461,7 +461,7 @@ static struct resource ls1x_wdt_resource[] = {
 #if defined(CONFIG_LOONGSON1_LS1A)
 		.end        = LS1X_WDT_BASE + 8,
 #else
-		.end        = LS1X_WDT_BASE + SZ_16K - 1,
+		.end        = LS1X_WDT_BASE + SZ_1K - 1,
 #endif
 		.flags      = IORESOURCE_MEM,
 	},
@@ -481,7 +481,8 @@ extern struct ls1x_nand_platform_data ls1x_nand_parts;
 static struct resource ls1x_nand_resources[] = {
 	[0] = {
 		.start	= LS1X_NAND_BASE,
-		.end	= LS1X_NAND_BASE + SZ_16K - 1,
+//		.end	= LS1X_NAND_BASE + SZ_16K - 1,
+		.end	= LS1X_NAND_BASE + 0x30 - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 	[1] = {
@@ -680,6 +681,28 @@ struct platform_device ls1x_ac97_pdev = {
 struct platform_device ls1x_stac_pdev = {
 	.name		= "ac97-codec",
 	.id		= -1,
+};
+#endif
+
+#ifdef CONFIG_SND_LS1X_SOC_I2S
+static struct resource ls1x_i2s_resource[] = {
+	[0]={
+		.start	= LS1X_I2S_BASE,
+		.end	= LS1X_I2S_BASE + SZ_16K - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1]={
+		.start	= LS1X_I2S_IRQ,
+		.end	= LS1X_I2S_IRQ,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+struct platform_device ls1x_i2s_pdev = {
+	.name           = "ls1x-i2s",
+	.id             = -1,
+	.num_resources	= ARRAY_SIZE(ls1x_i2s_resource),
+	.resource		= ls1x_i2s_resource,
 };
 #endif
 
