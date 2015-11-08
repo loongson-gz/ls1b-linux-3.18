@@ -524,19 +524,7 @@ static struct resource ls1x_spi0_resource[] = {
 #endif
 };
 
-#ifdef CONFIG_SPI_CS_USED_GPIO
-static int spi0_gpios_cs[] =
-	{ 27, 28, 29, 30 };
-#endif
-
-static struct ls1x_spi_platform_data ls1x_spi0_platdata = {
-#ifdef CONFIG_SPI_CS_USED_GPIO
-	.gpio_cs_count = ARRAY_SIZE(spi0_gpios_cs),
-	.gpio_cs = spi0_gpios_cs,
-#elif CONFIG_SPI_CS
-	.cs_count = SPI0_CS3 + 1,
-#endif
-};
+extern struct ls1x_spi_platform_data ls1x_spi0_platdata;
 
 struct platform_device ls1x_spi0_pdev = {
 	.name		= "spi_ls1x",
@@ -566,23 +554,7 @@ static struct resource ls1x_spi1_resource[] = {
 #endif
 };
 
-#ifdef CONFIG_SPI_CS_USED_GPIO
-static int spi1_gpios_cs[] =
-#if defined(CONFIG_LOONGSON1_LS1A)
-	{ 47, 69, 68 };
-#elif defined(CONFIG_LOONGSON1_LS1B)
-	{ 38, 0, 1 };
-#endif
-#endif
-
-static struct ls1x_spi_platform_data ls1x_spi1_platdata = {
-#ifdef CONFIG_SPI_CS_USED_GPIO
-	.gpio_cs_count = ARRAY_SIZE(spi1_gpios_cs),
-	.gpio_cs = spi1_gpios_cs,
-#elif CONFIG_SPI_CS
-	.cs_count = SPI1_CS2 + 1,
-#endif
-};
+extern struct ls1x_spi_platform_data ls1x_spi1_platdata;
 
 struct platform_device ls1x_spi1_pdev = {
 	.name		= "spi_ls1x",

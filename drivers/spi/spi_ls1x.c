@@ -49,7 +49,7 @@ struct ls1x_spi {
 	unsigned int txc, rxc;
 	const u8 *txp;
 	u8 *rxp;
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	unsigned int gpio_cs_count;
 	int *gpio_cs;
 #endif
@@ -114,12 +114,12 @@ static void ls1x_spi_chipselect(struct spi_device *spi, int is_active)
 {
 	struct ls1x_spi *hw = ls1x_spi_to_hw(spi);
 
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	if (hw->gpio_cs_count) {
 		gpio_set_value(hw->gpio_cs[spi->chip_select],
 			(spi->mode & SPI_CS_HIGH) ? is_active : !is_active);
 	}
-#elif CONFIG_SPI_CS
+#elif defined(CONFIG_SPI_CS)
 	u8 ret;
 	ret = readb(hw->base + REG_SOFTCS);
 	ret = (ret & 0xf0) | (0x01 << spi->chip_select);
@@ -309,7 +309,7 @@ static irqreturn_t ls1x_spi_irq(int irq, void *dev)
 #ifdef CONFIG_OF
 #include <linux/of_gpio.h>
 
-static int __devinit ls1x_spi_of_probe(struct platform_device *pdev)
+static int ls1x_spi_of_probe(struct platform_device *pdev)
 {
 	struct ls1x_spi *hw = platform_get_drvdata(pdev);
 	struct device_node *np = pdev->dev.of_node;
@@ -343,7 +343,7 @@ static int __devinit ls1x_spi_of_probe(struct platform_device *pdev)
 	return 0;
 }
 #else /* !CONFIG_OF */
-static int __devinit ls1x_spi_of_probe(struct platform_device *pdev)
+static int ls1x_spi_of_probe(struct platform_device *pdev)
 {
 	return 0;
 }
@@ -364,9 +364,9 @@ static void ls1x_spi_hw_init(struct ls1x_spi *hw)
 	writeb(0xc0, hw->base + REG_SPSR);
 	/* 1字节产生中断，采样(读)与发送(写)时机同时 */
 	writeb(0x03, hw->base + REG_SPER);
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	writeb(0x00, hw->base + REG_SOFTCS);
-#elif CONFIG_SPI_CS
+#elif defined(CONFIG_SPI_CS)
 	writeb(0xff, hw->base + REG_SOFTCS);
 #endif
 	/* 关闭SPI flash */
@@ -384,7 +384,7 @@ static int ls1x_spi_probe(struct platform_device *pdev)
 	struct spi_master *master;
 	struct resource *res;
 	int err = -ENODEV;
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	unsigned int i;
 #endif
 
@@ -434,7 +434,7 @@ static int ls1x_spi_probe(struct platform_device *pdev)
 	hw->irq = -1;
 #endif
 
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	/* find platform data */
 	if (platp) {
 		hw->gpio_cs_count = platp->gpio_cs_count;
@@ -453,7 +453,7 @@ static int ls1x_spi_probe(struct platform_device *pdev)
 		gpio_direction_output(hw->gpio_cs[i], 1);
 	}
 	hw->bitbang.master->num_chipselect = max(1U, hw->gpio_cs_count);
-#elif CONFIG_SPI_CS
+#elif defined(CONFIG_SPI_CS)
 	hw->bitbang.master->num_chipselect = platp->cs_count;
 #endif
 
@@ -475,7 +475,7 @@ static int ls1x_spi_probe(struct platform_device *pdev)
 	return 0;
 
 err_no_clk:
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 exit_gpio:
 	while (i-- > 0)
 		gpio_free(hw->gpio_cs[i]);
@@ -492,12 +492,12 @@ static int ls1x_spi_remove(struct platform_device *pdev)
 {
 	struct ls1x_spi *hw = platform_get_drvdata(pdev);
 	struct spi_master *master = hw->bitbang.master;
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	unsigned int i;
 #endif
 
 	spi_bitbang_stop(&hw->bitbang);
-#ifdef CONFIG_SPI_CS_USED_GPIO
+#if defined(CONFIG_SPI_CS_USED_GPIO)
 	for (i = 0; i < hw->gpio_cs_count; i++)
 		gpio_free(hw->gpio_cs[i]);
 #endif

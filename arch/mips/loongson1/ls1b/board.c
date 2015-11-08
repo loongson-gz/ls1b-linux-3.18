@@ -97,6 +97,19 @@ static struct mmc_spi_platform_data mmc_spi __maybe_unused = {
 #ifdef CONFIG_SPI_LS1X_SPI0
 #include <linux/spi/spi.h>
 #include <linux/spi/spi_ls1x.h>
+#if defined(CONFIG_SPI_CS_USED_GPIO)
+static int spi0_gpios_cs[] = { 43, 67, 66 };
+#endif
+
+struct ls1x_spi_platform_data ls1x_spi0_platdata = {
+#if defined(CONFIG_SPI_CS_USED_GPIO)
+	.gpio_cs_count = ARRAY_SIZE(spi0_gpios_cs),
+	.gpio_cs = spi0_gpios_cs,
+#elif defined(CONFIG_SPI_CS)
+	.cs_count = SPI0_CS3 + 1,
+#endif
+};
+
 static struct spi_board_info ls1x_spi0_devices[] = {
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
 	{

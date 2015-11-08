@@ -17,7 +17,7 @@ struct ls1x_spi_platform_data {
 #if defined(CONFIG_SPI_CS_USED_GPIO)
 	unsigned int gpio_cs_count;
 	int *gpio_cs;
-#elif CONFIG_SPI_CS
+#elif defined(CONFIG_SPI_CS)
 	unsigned int cs_count;
 #endif
 };
