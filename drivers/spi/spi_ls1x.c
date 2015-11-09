@@ -115,9 +115,33 @@ static void ls1x_spi_chipselect(struct spi_device *spi, int is_active)
 	struct ls1x_spi *hw = ls1x_spi_to_hw(spi);
 
 #if defined(CONFIG_SPI_CS_USED_GPIO)
-	if (hw->gpio_cs_count) {
-		gpio_set_value(hw->gpio_cs[spi->chip_select],
-			(spi->mode & SPI_CS_HIGH) ? is_active : !is_active);
+	int i, num_chipselect;
+
+	num_chipselect = hw->bitbang.master->num_chipselect;
+
+	/* 使其他片选失效，spi sd卡会使片选一直有效，spi sd卡驱动的问题？ */
+	if (unlikely(spi->mode & SPI_CS_HIGH)) {
+		if (is_active) {
+			for (i=0; i<num_chipselect; i++) {
+				gpio_set_value(hw->gpio_cs[i], 0);
+			}
+			gpio_set_value(hw->gpio_cs[spi->chip_select], 1);
+		} else {
+			for (i=0; i<num_chipselect; i++) {
+				gpio_set_value(hw->gpio_cs[i], 0);
+			}
+		}
+	} else {
+		if (is_active) {
+			for (i=0; i<num_chipselect; i++) {
+				gpio_set_value(hw->gpio_cs[i], 1);
+			}
+			gpio_set_value(hw->gpio_cs[spi->chip_select], 0);
+		} else {
+			for (i=0; i<num_chipselect; i++) {
+				gpio_set_value(hw->gpio_cs[i], 1);
+			}
+		}
 	}
 #elif defined(CONFIG_SPI_CS)
 	u8 ret;
@@ -395,7 +419,7 @@ static int ls1x_spi_probe(struct platform_device *pdev)
 	/* setup the master state. */
 	master->bus_num = pdev->id;
 	master->num_chipselect = 32;
-	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
+	master->mode_bits = SPI_CPOL | SPI_CPHA;
 	master->setup = ls1x_spi_setup;
 
 	hw = spi_master_get_devdata(master);
@@ -408,6 +432,7 @@ static int ls1x_spi_probe(struct platform_device *pdev)
 	hw->bitbang.setup_transfer = ls1x_spi_setup_transfer;
 	hw->bitbang.chipselect = ls1x_spi_chipselect;
 	hw->bitbang.txrx_bufs = ls1x_spi_txrx_bufs;
+	hw->bitbang.flags = SPI_CS_HIGH;
 
 	/* find and map our resources */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);

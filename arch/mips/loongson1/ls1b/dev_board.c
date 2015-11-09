@@ -89,7 +89,7 @@ static struct ads7846_platform_data ads_info __maybe_unused = {
 static struct mmc_spi_platform_data mmc_spi __maybe_unused = {
 	.flags = MMC_SPI_USE_CD_GPIO,
 	.cd_gpio = DETECT_GPIO,
-	.caps = MMC_CAP_NEEDS_POLL,
+//	.caps = MMC_CAP_NEEDS_POLL,
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* 3.3V only */
 };	
 #endif  /* defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE) */
