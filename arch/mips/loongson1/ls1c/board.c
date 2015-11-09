@@ -166,6 +166,11 @@ static struct i2c_board_info ls1x_i2c0_board_info[] = {
 		I2C_BOARD_INFO("es8328", 0x10),
 	},
 #endif
+#ifdef CONFIG_RTC_DRV_SD2068
+	{
+		I2C_BOARD_INFO("sd2068", 0x32),
+	},
+#endif
 };
 #endif
 
