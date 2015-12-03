@@ -105,7 +105,11 @@ void __init prom_init(void)
 	highmemsize = env_or_default("highmemsize", 0x0);
 
 	if (strstr(arcs_cmdline, "console=ttyS5"))
+	#if defined(CONFIG_LOONGSON1_LS1B) || defined(CONFIG_LOONGSON1_LS1C)
 		uart_base = ioremap_nocache(LS1X_UART5_BASE, 0x0f);
+	#else
+		uart_base = ioremap_nocache(LS1X_UART0_BASE, 0x0f);
+	#endif
 	else if (strstr(arcs_cmdline, "console=ttyS3"))
 		uart_base = ioremap_nocache(LS1X_UART3_BASE, 0x0f);
 	else if (strstr(arcs_cmdline, "console=ttyS2"))
