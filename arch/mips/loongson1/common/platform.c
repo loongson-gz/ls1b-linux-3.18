@@ -87,7 +87,7 @@ void __init ls1x_serial_setup(struct platform_device *pdev)
 #endif
 #ifdef CONFIG_MULTIFUNC_CONFIG_SERAIL1
 	__raw_writeb(__raw_readb(UART_SPLIT) | 0x02, UART_SPLIT);
-	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) | UART1_3_USE_CAN1 | UART1_2_USE_CAN0, 
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) | UART1_3_USE_CAN1 | UART1_2_USE_CAN0,
 				LS1X_MUX_CTRL1);
 #endif
 
@@ -219,11 +219,6 @@ int ls1x_eth_mux_init(struct platform_device *pdev, void *priv)
 
 	val = __raw_readl(LS1X_MUX_CTRL0);
 	__raw_writel(val & (~GMAC_SHUT), LS1X_MUX_CTRL0);
-
-	#if defined(CONFIG_LS1X_GMAC0_RMII)
-	__raw_writel(0x400, (void __iomem *)KSEG1ADDR(LS1X_GMAC0_BASE + 0x14));
-	#endif
-	__raw_writel(0xe4b, (void __iomem *)KSEG1ADDR(LS1X_GMAC0_BASE + 0x10));
 #endif
 
 	return 0;
@@ -984,7 +979,7 @@ static struct resource ls1x_hwmon_resources[] = {
 		.start   = LS1X_ADC_BASE,
 		.end     = LS1X_ADC_BASE + SZ_16K - 1,
 		.flags   = IORESOURCE_MEM,
-	}, 
+	},
 /*	{
 		.start   = LS1X_ADC_IRQ,
 		.end     = LS1X_ADC_IRQ,
