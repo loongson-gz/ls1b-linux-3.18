@@ -62,6 +62,45 @@ static struct flash_platform_data ls1x_spi_flash_data = {
 };
 #endif
 
+#if defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE)
+#include <linux/spi/mmc_spi.h>
+#include <linux/mmc/host.h>
+/* 开发板使用GPIO184引脚作为MMC/SD卡的插拔探测引脚 */
+#define DETECT_GPIO  184	/* PCA9555_GPIO_BASE_0 + 14 */
+#define WRITE_PROTECT_GPIO  185	/* 写保护探测 */ /* PCA9555_GPIO_BASE_0 + 15 */
+static struct mmc_spi_platform_data mmc_spi __maybe_unused = {
+	.flags = MMC_SPI_USE_CD_GPIO | MMC_SPI_USE_RO_GPIO,
+	.cd_gpio = DETECT_GPIO,
+	.ro_gpio = WRITE_PROTECT_GPIO,
+//	.caps = MMC_CAP_NEEDS_POLL,
+	.caps2 = MMC_CAP2_RO_ACTIVE_HIGH,
+	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* 3.3V only */
+};
+#endif  /* defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE) */
+
+#ifdef CONFIG_TOUCHSCREEN_ADS7846
+#include <linux/spi/ads7846.h>
+#define ADS7846_GPIO_IRQ 180 /* 开发板触摸屏使用的外部中断 */ /* PCA9555_GPIO_BASE_0 + 10 */
+static struct ads7846_platform_data ads_info __maybe_unused = {
+	.model				= 7846,
+	.vref_delay_usecs	= 1,
+	.keep_vref_on		= 0,
+	.settle_delay_usecs	= 20,
+//	.x_plate_ohms		= 800,
+	.pressure_min		= 0,
+	.pressure_max		= 2048,
+	.debounce_rep		= 3,
+	.debounce_max		= 10,
+	.debounce_tol		= 50,
+//	.get_pendown_state	= ads7846_pendown_state,
+	.get_pendown_state	= NULL,
+	.gpio_pendown		= ADS7846_GPIO_IRQ,
+	.filter_init		= NULL,
+	.filter 			= NULL,
+	.filter_cleanup 	= NULL,
+};
+#endif /* TOUCHSCREEN_ADS7846 */
+
 #ifdef CONFIG_SPI_LS1X_SPI0
 #include <linux/spi/spi.h>
 #include <linux/spi/spi_ls1x.h>
@@ -89,49 +128,209 @@ static struct spi_board_info ls1x_spi0_devices[] = {
 		.mode = SPI_MODE_3,
 	},
 #endif
+#if defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE)
+	{
+		.modalias		= "mmc_spi",
+		.bus_num 		= 0,
+		.chip_select	= SPI0_CS2,
+		.max_speed_hz	= 25000000,
+		.platform_data	= &mmc_spi,
+		.mode = SPI_MODE_3,
+	},
+#endif
+#ifdef CONFIG_TOUCHSCREEN_ADS7846
+	{
+		.modalias = "ads7846",
+		.platform_data = &ads_info,
+		.bus_num 		= 0,
+		.chip_select 	= SPI0_CS1,
+		.max_speed_hz 	= 2500000,
+		.mode 			= SPI_MODE_1,
+		.irq			= ADS7846_GPIO_IRQ,
+	},
+#endif
 };
 #endif
 
 #ifdef CONFIG_GPIO_PCA953X
 #include <linux/platform_data/pca953x.h>
-#define PCA9555_GPIO_BASE 170
-#define PCA9555_IRQ_BASE 170
-#define PCA9555_GPIO_IRQ 31
+#define PCA9555_GPIO_BASE_0 170
+#define PCA9555_IRQ_BASE_0 170
+#define PCA9555_GPIO_IRQ_0 36
 
-#define LOCKER_TS	(PCA9555_GPIO_BASE+12)
-#define LOCKER_BL	(PCA9555_GPIO_BASE+13)
-
-static int pca9555_setup(struct i2c_client *client,
+static int pca9555_setup_0(struct i2c_client *client,
 			       unsigned gpio_base, unsigned ngpio,
 			       void *context)
 {
-	gpio_request(PCA9555_GPIO_IRQ, "pca9555 gpio irq");
-	gpio_direction_input(PCA9555_GPIO_IRQ);
+	gpio_request(PCA9555_GPIO_IRQ_0, "pca9555 gpio irq0");
+	gpio_direction_input(PCA9555_GPIO_IRQ_0);
+
+	gpio_request(gpio_base + 0, "mfrc531 irq");
+	gpio_direction_input(gpio_base + 0);
+	gpio_request(gpio_base + 1, "mfrc531 ncs");
+	gpio_direction_output(gpio_base + 1, 1);
+	gpio_request(gpio_base + 2, "mfrc531 rstpd");
+	gpio_direction_output(gpio_base + 2, 0);
+
 	return 0;
 }
 
-static struct pca953x_platform_data i2c_pca9555_platdata = {
-	.gpio_base	= PCA9555_GPIO_BASE, /* Start directly after the CPU's GPIO */
-	.irq_base = PCA9555_IRQ_BASE,
+static struct pca953x_platform_data i2c_pca9555_platdata_0 = {
+	.gpio_base	= PCA9555_GPIO_BASE_0, /* Start directly after the CPU's GPIO */
+	.irq_base = PCA9555_IRQ_BASE_0,
 //	.invert		= 0, /* Do not invert */
-	.setup		= pca9555_setup,
+	.setup		= pca9555_setup_0,
+};
+
+#define PCA9555_GPIO_BASE_1 186
+#define PCA9555_IRQ_BASE_1 186
+#define PCA9555_GPIO_IRQ_1 31
+
+static int pca9555_setup_1(struct i2c_client *client,
+			       unsigned gpio_base, unsigned ngpio,
+			       void *context)
+{
+	gpio_request(PCA9555_GPIO_IRQ_1, "pca9555 gpio irq1");
+	gpio_direction_input(PCA9555_GPIO_IRQ_1);
+	return 0;
+}
+
+static struct pca953x_platform_data i2c_pca9555_platdata_1 = {
+	.gpio_base	= PCA9555_GPIO_BASE_1, /* Start directly after the CPU's GPIO */
+	.irq_base = PCA9555_IRQ_BASE_1,
+//	.invert		= 0, /* Do not invert */
+	.setup		= pca9555_setup_1,
+};
+
+#define PCA9555_GPIO_BASE_2 202
+#define PCA9555_IRQ_BASE_2 202
+#define PCA9555_GPIO_IRQ_2 32
+
+static int pca9555_setup_2(struct i2c_client *client,
+			       unsigned gpio_base, unsigned ngpio,
+			       void *context)
+{
+	gpio_request(PCA9555_GPIO_IRQ_2, "pca9555 gpio irq2");
+	gpio_direction_input(PCA9555_GPIO_IRQ_2);
+	return 0;
+}
+
+static struct pca953x_platform_data i2c_pca9555_platdata_2 = {
+	.gpio_base	= PCA9555_GPIO_BASE_2, /* Start directly after the CPU's GPIO */
+	.irq_base = PCA9555_IRQ_BASE_2,
+//	.invert		= 0, /* Do not invert */
+	.setup		= pca9555_setup_2,
 };
 
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 #include <linux/leds.h>
 struct gpio_led pca9555_gpio_leds[] = {
+	/* PCA9555 0 */
 	{
-		.name			= "locker_ts",
-		.gpio			= LOCKER_TS,
+		.name			= "soft_start_0",
+		.gpio			= PCA9555_GPIO_BASE_0 + 3,
 		.active_low		= 1,
 		.default_trigger	= NULL,
 		.default_state	= LEDS_GPIO_DEFSTATE_ON,
 	},
 	{
-		.name			= "locker_bl",
-		.gpio			= LOCKER_BL,
+		.name			= "rs485",
+		.gpio			= PCA9555_GPIO_BASE_0 + 4,
+		.active_low		= 1,
+		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	{
+		.name			= "lock_key",
+		.gpio			= PCA9555_GPIO_BASE_0 + 7,
+		.active_low		= 1,
+		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	{
+		.name			= "usb_reset",
+		.gpio			= PCA9555_GPIO_BASE_0 + 8,
 		.active_low		= 0,
 		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "wifi_rfen",
+		.gpio			= PCA9555_GPIO_BASE_0 + 9,
+		.active_low		= 1,
+		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	{
+		.name			= "gsm_emerg_off",
+		.gpio			= PCA9555_GPIO_BASE_0 + 12,
+		.active_low		= 1,
+		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "gsm_pwrkey",
+		.gpio			= PCA9555_GPIO_BASE_0 + 13,
+		.active_low		= 1,
+		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	/* PCA9555 1 */
+	{
+		.name			= "led_red",
+		.gpio			= PCA9555_GPIO_BASE_1 + 8,
+		.active_low		= 0,
+		.default_trigger	= "none",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "led_green",
+		.gpio			= PCA9555_GPIO_BASE_1 + 9,
+		.active_low		= 0,
+		.default_trigger	= "heartbeat",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "led_blue",
+		.gpio			= PCA9555_GPIO_BASE_1 + 10,
+		.active_low		= 0,
+		.default_trigger	= "none",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "soft_start_1",
+		.gpio			= PCA9555_GPIO_BASE_1 + 13,
+		.active_low		= 1,
+		.default_trigger	= NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	/* PCA9555 2 */
+	{
+		.name			= "locker_bl",
+		.gpio			= PCA9555_GPIO_BASE_2 + 1,
+		.active_low		= 0,
+		.default_trigger	= "none",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "audio_en",
+		.gpio			= PCA9555_GPIO_BASE_2 + 11,
+		.active_low		= 0,
+		.default_trigger	= "none",
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+	{
+		.name			= "otg_vbus",
+		.gpio			= PCA9555_GPIO_BASE_2 + 13,
+		.active_low		= 0,
+		.default_trigger	= "none",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},
+	{
+		.name			= "otg_id",
+		.gpio			= PCA9555_GPIO_BASE_2 + 14,
+		.active_low		= 0,
+		.default_trigger	= "none",
 		.default_state	= LEDS_GPIO_DEFSTATE_ON,
 	},
 };
@@ -156,9 +355,19 @@ static struct platform_device pca9555_leds = {
 static struct i2c_board_info ls1x_i2c0_board_info[] = {
 #ifdef CONFIG_GPIO_PCA953X
 	{
-		I2C_BOARD_INFO("pca9555", 0x20),
-		.irq = LS1X_GPIO_FIRST_IRQ + PCA9555_GPIO_IRQ,
-		.platform_data = &i2c_pca9555_platdata,
+		I2C_BOARD_INFO("pca9555", 0x26),
+		.irq = LS1X_GPIO_FIRST_IRQ + PCA9555_GPIO_IRQ_0,
+		.platform_data = &i2c_pca9555_platdata_0,
+	},
+	{
+		I2C_BOARD_INFO("pca9555", 0x22),
+		.irq = LS1X_GPIO_FIRST_IRQ + PCA9555_GPIO_IRQ_1,
+		.platform_data = &i2c_pca9555_platdata_1,
+	},
+	{
+		I2C_BOARD_INFO("pca9555", 0x23),
+		.irq = LS1X_GPIO_FIRST_IRQ + PCA9555_GPIO_IRQ_2,
+		.platform_data = &i2c_pca9555_platdata_2,
 	},
 #endif
 #ifdef CONFIG_SND_SOC_ES8328
@@ -220,7 +429,7 @@ struct ls1x_i2c_platform_data ls1x_i2c2_data = {
 #endif
 
 #ifdef CONFIG_BACKLIGHT_GPIO
-#define GPIO_BACKLIGHT_CTRL	180 //PCA9555_GPIO_BASE+10
+#define GPIO_BACKLIGHT_CTRL	197 //PCA9555_GPIO_BASE_1+11
 #include <linux/platform_data/gpio_backlight.h>
 static struct gpio_backlight_platform_data gpio_backlight_data = {
 	.fbdev = &ls1x_fb0_pdev.dev,
@@ -237,121 +446,6 @@ static struct platform_device ls1x_bl_pdev = {
 };
 #endif //#ifdef CONFIG_BACKLIGHT_GPIO
 
-#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-#include <linux/input.h>
-#include <linux/gpio_keys.h>
-static struct gpio_keys_button ls1x_gpio_keys_buttons[] = {
-	 {
-		.code		= KEY_0,
-		.gpio		= 170,	/* PCA9555_GPIO_BASE+0 */
-		.active_low	= 1,
-		.desc		= "0",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_1,
-		.gpio		= 171,	/* PCA9555_GPIO_BASE+1 */
-		.active_low	= 1,
-		.desc		= "1",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_2,
-		.gpio		= 172,	/* PCA9555_GPIO_BASE+2 */
-		.active_low	= 1,
-		.desc		= "2",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_3,
-		.gpio		= 173,	/* PCA9555_GPIO_BASE+3 */
-		.active_low	= 1,
-		.desc		= "3",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_4,
-		.gpio		= 174,	/* PCA9555_GPIO_BASE+4 */
-		.active_low	= 1,
-		.desc		= "4",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_5,
-		.gpio		= 175,	/* PCA9555_GPIO_BASE+5 */
-		.active_low	= 1,
-		.desc		= "5",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_6,
-		.gpio		= 176,	/* PCA9555_GPIO_BASE+6 */
-		.active_low	= 1,
-		.desc		= "6",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-	{
-		.code		= KEY_ENTER,
-		.gpio		= 177,	/* PCA9555_GPIO_BASE+7 */
-		.active_low	= 1,
-		.desc		= "ENTER",
-		.wakeup		= 1,
-		.debounce_interval	= 10, /* debounce ticks interval in msecs */
-	},
-};
-
-static struct gpio_keys_platform_data ls1x_gpio_keys_data = {
-	.nbuttons = ARRAY_SIZE(ls1x_gpio_keys_buttons),
-	.buttons = ls1x_gpio_keys_buttons,
-	.rep	= 1,	/* enable input subsystem auto repeat */
-};
-
-static struct platform_device ls1x_gpio_keys = {
-	.name =	"gpio-keys",
-	.id =	-1,
-	.dev = {
-		.platform_data = &ls1x_gpio_keys_data,
-	}
-};
-#endif
-
-#if defined(CONFIG_MMC_LS1X)
-#include <linux/mmc/host.h>
-#include <mci.h>
-#define SDIO_WP_GPIO  32
-#define SDIO_DETECT_GPIO  84
-/* 轮询方式探测card的插拔 */
-static int ls1x_sdio_get_ro(struct device *dev)
-{
-	return gpio_get_value(SDIO_WP_GPIO);
-}
-
-static int ls1x_sdio_get_cd(struct device *dev)
-{
-	return !gpio_get_value(SDIO_DETECT_GPIO);
-}
-
-struct ls1x_mci_pdata ls1x_sdio_parts = {
-	/* 中断方式方式探测card的插拔 */
-//	.init = ls1x_mmc_init,
-//	.exit = ls1x_mmc_exit,
-//	.detect_delay = 1200,	/* msecs */
-
-	/* 轮询方式方式探测card的插拔 */
-	.get_ro = ls1x_sdio_get_ro,
-	.get_cd = ls1x_sdio_get_cd,
-	.caps = MMC_CAP_NEEDS_POLL,
-
-//	.max_clk = 17000000, /* 部分sd卡可能会出现读写错误，可以尝试降低提供给sd卡的频率 */
-};
-#endif //CONFIG_MTD_SDIO_LS1X
 
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #include <linux/can/platform/sja1000.h>
@@ -383,75 +477,6 @@ static void ls1x_can_setup(void)
 	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~CAN0_SHUT), LS1X_MUX_CTRL0);
 }
 #endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
-
-#ifdef CONFIG_LEDS_PWM
-#include <linux/pwm.h>
-#include <linux/leds_pwm.h>
-static struct pwm_lookup pwm_lookup[] = {
-	/* LEDB -> PMU_STAT */
-	PWM_LOOKUP("ls1x-pwm.0", 0, "leds_pwm", "ls1x_pwm_led0",
-			7812500, PWM_POLARITY_NORMAL),
-	PWM_LOOKUP("ls1x-pwm.1", 0, "leds_pwm", "ls1x_pwm_led1",
-			7812500, PWM_POLARITY_NORMAL),
-/*	PWM_LOOKUP("ls1x-pwm.2", 0, "leds_pwm", "ls1x_pwm_led2",
-			7812500, PWM_POLARITY_NORMAL),
-	PWM_LOOKUP("ls1x-pwm.3", 0, "leds_pwm", "ls1x_pwm_led3",
-			7812500, PWM_POLARITY_NORMAL),*/
-};
-
-static struct led_pwm ls1x_pwm_leds[] = {
-	{
-		.name		= "ls1x_pwm_led0",
-		.max_brightness	= 255,
-		.pwm_period_ns	= 7812500,
-	},
-	{
-		.name		= "ls1x_pwm_led1",
-		.max_brightness	= 255,
-		.pwm_period_ns	= 7812500,
-	},
-/*	{
-		.name		= "ls1x_pwm_led2",
-		.max_brightness	= 255,
-		.pwm_period_ns	= 7812500,
-	},
-	{
-		.name		= "ls1x_pwm_led3",
-		.max_brightness	= 255,
-		.pwm_period_ns	= 7812500,
-	},*/
-};
-
-static struct led_pwm_platform_data ls1x_pwm_data = {
-	.num_leds	= ARRAY_SIZE(ls1x_pwm_leds),
-	.leds		= ls1x_pwm_leds,
-};
-
-static struct platform_device ls1x_leds_pwm = {
-	.name	= "leds_pwm",
-	.id		= -1,
-	.dev	= {
-		.platform_data = &ls1x_pwm_data,
-	},
-};
-#endif //#ifdef CONFIG_LEDS_PWM
-
-#ifdef CONFIG_INPUT_GPIO_BEEPER
-#include <linux/gpio.h>
-#include <linux/gpio/machine.h>
-static struct gpiod_lookup_table buzzer_gpio_table = {
-	.dev_id = "gpio-beeper",	/* 注意 该值与ls1x_gpio_beeper.name相同 */
-	.table = {
-		GPIO_LOOKUP("ls1x-gpio1", 5, NULL, 0),	/* 使用第1组gpio的第5个引脚 注意"ls1x-gpio1"与gpio的label值相同 */
-		{ },
-	},
-};
-
-struct platform_device ls1x_gpio_beeper = {
-	.name = "gpio-beeper",
-	.id = -1,
-};
-#endif
 
 #ifdef CONFIG_SENSORS_LS1X
 #include <hwmon.h>
@@ -506,7 +531,7 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #ifdef CONFIG_USB_EHCI_HCD_PLATFORM
 	&ls1x_ehci_pdev,
 #endif
-#ifdef CONFIG_RTC_DRV_TOY_LOONGSON1CV2
+#ifdef CONFIG_RTC_DRV_TOY_LOONGSON1
 	&ls1x_toy_pdev,
 #endif
 #ifdef CONFIG_LS1X_WDT
@@ -538,9 +563,6 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 	&pca9555_leds,
 #endif
 #endif
-#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-	&ls1x_gpio_keys,
-#endif
 #ifdef CONFIG_BACKLIGHT_GPIO
 	&ls1x_bl_pdev,
 #endif
@@ -555,15 +577,6 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #endif
 #ifdef CONFIG_PWM_LS1X_PWM3
 	&ls1x_pwm3_pdev,
-#endif
-#ifdef CONFIG_LEDS_PWM
-	&ls1x_leds_pwm,
-#endif
-#ifdef CONFIG_INPUT_GPIO_BEEPER
-	&ls1x_gpio_beeper,
-#endif
-#if defined(CONFIG_MMC_LS1X)
-	&ls1x_sdio_pdev,
 #endif
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #ifdef CONFIG_LS1X_CAN0
@@ -593,14 +606,6 @@ static int __init ls1c_platform_init(void)
 	ls1x_i2c_setup();
 #endif
 
-#if defined(CONFIG_MMC_LS1X)
-	/* 轮询方式或中断方式探测card的插拔 */
-	gpio_request(SDIO_WP_GPIO, "ls1x sdio wp");
-	gpio_direction_input(SDIO_WP_GPIO);
-	gpio_request(SDIO_DETECT_GPIO, "ls1x sdio detect");
-	gpio_direction_input(SDIO_DETECT_GPIO);
-#endif
-
 	/* 根据需要修改复用引脚关系 */
 #if defined(CONFIG_PWM_LS1X_PWM0) || defined(CONFIG_PWM_LS1X_PWM1)
 
@@ -611,12 +616,6 @@ static int __init ls1c_platform_init(void)
 	__raw_writel(__raw_readl(LS1X_CBUS_THIRD1) & (~0x00300000), LS1X_CBUS_THIRD1);
 	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT1) | 0x00300000, LS1X_CBUS_FOURTHT1);
 	__raw_writel(__raw_readl(LS1X_CBUS_FIFTHT1) & (~0x00300000), LS1X_CBUS_THIRD1);
-#endif
-#ifdef CONFIG_LEDS_PWM
-	pwm_add_table(pwm_lookup, ARRAY_SIZE(pwm_lookup));
-#endif
-#ifdef CONFIG_INPUT_GPIO_BEEPER
-	gpiod_add_lookup_table(&buzzer_gpio_table);
 #endif
 
 #ifdef CONFIG_SENSORS_LS1X

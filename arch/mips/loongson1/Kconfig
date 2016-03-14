@@ -66,6 +66,28 @@ config LOONGSON1_LS1C
 	select USE_GENERIC_EARLY_PRINTK_8250
 	select COMMON_CLK
 
+if LOONGSON1_LS1C
+
+choice
+	prompt "Loongson LS1C board config"
+	default LS1C_CBII_V0A_BOARD
+
+config LS1C_CBII_V0A_BOARD
+	bool "LS1C_CBII_V0A board (ls1c300b)"
+	select LOONGSON1_LS1C300B
+
+config LS1C_CBV0B_BOARD
+	bool "LS1C_CB_V0B board (ls1c300a)"
+	select LOONGSON1_LS1C300A
+endchoice
+
+config LOONGSON1_LS1C300A
+	bool
+
+config LOONGSON1_LS1C300B
+	bool
+endif
+
 endchoice
 
 endif # MACH_LOONGSON1

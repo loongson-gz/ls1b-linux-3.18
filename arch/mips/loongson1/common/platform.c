@@ -56,7 +56,7 @@ static struct plat_serial8250_port ls1x_serial8250_port[] = {
 	LS1X_UART_SHARE(11, 1),
 #endif
 
-#elif defined(CONFIG_LOONGSON1_LS1C)
+#elif defined(CONFIG_LOONGSON1_LS1C300B)
 	LS1X_UART(4),
 	LS1X_UART(5),
 	LS1X_UART(6),
