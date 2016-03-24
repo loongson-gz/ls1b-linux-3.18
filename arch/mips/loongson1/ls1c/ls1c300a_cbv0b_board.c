@@ -350,7 +350,7 @@ static struct platform_device pca9555_leds = {
 #endif //#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 #endif //#ifdef CONFIG_GPIO_PCA953X
 
-#if defined(CONFIG_I2C_OCORES) || defined(CONFIG_I2C_LS1X)
+#if defined(CONFIG_I2C_LS1X)
 #include <linux/i2c.h>
 static struct i2c_board_info ls1x_i2c0_board_info[] = {
 #ifdef CONFIG_GPIO_PCA953X
@@ -381,30 +381,12 @@ static struct i2c_board_info ls1x_i2c0_board_info[] = {
 	},
 #endif
 };
-#endif
 
-#ifdef CONFIG_I2C_OCORES
-#include <linux/i2c-ocores.h>
-struct ocores_i2c_platform_data ocores_i2c0_data = {
-	.reg_shift = 0,
-	.devices	= ls1x_i2c0_board_info, /* optional table of devices */
-	.num_devices	= ARRAY_SIZE(ls1x_i2c0_board_info), /* table size */
+static struct i2c_board_info ls1x_i2c1_board_info[] = {
 };
 
-static void ls1x_i2c_setup(void)
-{
-	struct ocores_i2c_platform_data *ocores_i2c_data;
-	struct clk *clk;
-
-	clk = clk_get(NULL, "apb_clk");
-	if (IS_ERR(clk))
-		panic("unable to get apb clock, err=%ld", PTR_ERR(clk));
-
-	ocores_i2c_data = &ocores_i2c0_data;
-	ocores_i2c_data->clock_khz = clk_get_rate(clk) / 1000;
-//	ocores_i2c_data = &ocores_i2c1_data;
-//	ocores_i2c_data->clock_khz = clk_get_rate(clk) / 1000;
-}
+static struct i2c_board_info ls1x_i2c2_board_info[] = {
+};
 #endif
 
 #ifdef CONFIG_I2C_LS1X
@@ -417,15 +399,24 @@ struct ls1x_i2c_platform_data ls1x_i2c0_data = {
 
 struct ls1x_i2c_platform_data ls1x_i2c1_data = {
 	.bus_clock_hz = 100000, /* i2c bus clock in Hz */
-//	.devices	= ls1x_i2c1_board_info, /* optional table of devices */
-//	.num_devices	= ARRAY_SIZE(ls1x_i2c1_board_info), /* table size */
+	.devices	= ls1x_i2c1_board_info, /* optional table of devices */
+	.num_devices	= ARRAY_SIZE(ls1x_i2c1_board_info), /* table size */
 };
 
 struct ls1x_i2c_platform_data ls1x_i2c2_data = {
 	.bus_clock_hz = 100000, /* i2c bus clock in Hz */
-//	.devices	= ls1x_i2c2_board_info, /* optional table of devices */
-//	.num_devices	= ARRAY_SIZE(ls1x_i2c2_board_info), /* table size */
+	.devices	= ls1x_i2c2_board_info, /* optional table of devices */
+	.num_devices	= ARRAY_SIZE(ls1x_i2c2_board_info), /* table size */
 };
+
+static void ls1x_i2c_setup(void)
+{
+/*	__raw_writel(__raw_readl(LS1X_CBUS_FIRST2)   & 0xFFFFCFFF, LS1X_CBUS_FIRST2);
+	__raw_writel(__raw_readl(LS1X_CBUS_SECOND2)  & 0xFFFFCFFF, LS1X_CBUS_SECOND2);
+	__raw_writel(__raw_readl(LS1X_CBUS_THIRD2)   & 0xFFFFCFFF, LS1X_CBUS_THIRD2);
+	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT2) | 0x00003000, LS1X_CBUS_FOURTHT2);
+	__raw_writel(__raw_readl(LS1X_CBUS_FIFTHT2)  & 0xFFFFCFFF, LS1X_CBUS_FIFTHT2);*/
+}
 #endif
 
 #ifdef CONFIG_BACKLIGHT_GPIO
@@ -522,9 +513,6 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #if defined(CONFIG_LS1X_GMAC0)
 	&ls1x_eth0_pdev,
 #endif
-#if defined(CONFIG_LS1X_GMAC1)
-	&ls1x_eth1_pdev,
-#endif
 #ifdef CONFIG_USB_OHCI_HCD_PLATFORM
 	&ls1x_ohci_pdev,
 #endif
@@ -546,11 +534,10 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #ifdef CONFIG_LS1X_FB0
 	&ls1x_fb0_pdev,
 #endif
-#ifdef CONFIG_I2C_OCORES
-	&ls1x_i2c0_pdev,
-#endif
 #ifdef CONFIG_I2C_LS1X
 	&ls1x_i2c0_pdev,
+	&ls1x_i2c1_pdev,
+	&ls1x_i2c2_pdev,
 #endif
 #ifdef CONFIG_SND_LS1X_SOC_I2S
 	&ls1x_i2s_pdev,
@@ -602,7 +589,7 @@ static int __init ls1c_platform_init(void)
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 	ls1x_can_setup();
 #endif
-#ifdef CONFIG_I2C_OCORES
+#ifdef CONFIG_I2C_LS1X
 	ls1x_i2c_setup();
 #endif
 
