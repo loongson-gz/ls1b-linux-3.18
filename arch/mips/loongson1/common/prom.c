@@ -71,6 +71,9 @@ void __init prom_init(void)
 	prom_envp = (char **)fw_arg2;
 
 #if defined(CONFIG_LOONGSON1_LS1C)
+	/* 关闭所有模块 cam模块必须使能，否则启动不了？i2c模块要提前打开 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) | 0x03ffc3f4, LS1X_MUX_CTRL0);
+
 	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~USBHOST_SHUT), LS1X_MUX_CTRL0);
 	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) & (~USBHOST_RSTN), LS1X_MUX_CTRL1);
 	mdelay(60);
@@ -137,7 +140,7 @@ void __init prom_init(void)
 
 	options = strstr(arcs_cmdline, "video=ls1bvga:");
 	if (options) {
-		
+
 		options += 14;
 		/* ls1bvga:1920x1080-16@60 */
 		for (i=0; i<strlen(options); i++)
@@ -151,7 +154,7 @@ void __init prom_init(void)
 			if (strp) {
 				default_refresh = simple_strtoul(strp+1, NULL, 0);
 			}
-			if ((default_xres<=0 || default_xres>1920) || 
+			if ((default_xres<=0 || default_xres>1920) ||
 				(default_yres<=0 || default_yres>1080)) {
 				pr_info("Warning: Resolution is out of range."
 					"MAX resolution is 1920x1080@60Hz\n");
@@ -160,7 +163,7 @@ void __init prom_init(void)
 			}
 		}
 		for (input_vga=ls1b_vga_modes; input_vga->ls1b_pll_freq !=0; ++input_vga) {
-//			if((input_vga->xres == default_xres) && (input_vga->yres == default_yres) && 
+//			if((input_vga->xres == default_xres) && (input_vga->yres == default_yres) &&
 //				(input_vga->refresh == default_refresh)) {
 			if ((input_vga->xres == default_xres) && (input_vga->yres == default_yres)) {
 				break;

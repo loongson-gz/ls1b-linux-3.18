@@ -411,6 +411,11 @@ struct ls1x_i2c_platform_data ls1x_i2c2_data = {
 
 static void ls1x_i2c_setup(void)
 {
+	/* 使能I2C控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~I2C0_SHUT), LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~I2C1_SHUT), LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~I2C2_SHUT), LS1X_MUX_CTRL0);
+
 /*	__raw_writel(__raw_readl(LS1X_CBUS_FIRST2)   & 0xFFFFCFFF, LS1X_CBUS_FIRST2);
 	__raw_writel(__raw_readl(LS1X_CBUS_SECOND2)  & 0xFFFFCFFF, LS1X_CBUS_SECOND2);
 	__raw_writel(__raw_readl(LS1X_CBUS_THIRD2)   & 0xFFFFCFFF, LS1X_CBUS_THIRD2);
@@ -450,10 +455,16 @@ static void ls1x_can_setup(void)
 		panic("unable to get apb clock, err=%ld", PTR_ERR(clk));
 
 	#ifdef CONFIG_LS1X_CAN0
+	/* 使能can0控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~CAN0_SHUT), LS1X_MUX_CTRL0);
+
 	sja1000_pdata = &ls1x_sja1000_platform_data_0;
 	sja1000_pdata->osc_freq = clk_get_rate(clk);
 	#endif
 	#ifdef CONFIG_LS1X_CAN1
+	/* 使能can1控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~CAN1_SHUT), LS1X_MUX_CTRL0);
+
 	sja1000_pdata = &ls1x_sja1000_platform_data_1;
 	sja1000_pdata->osc_freq = clk_get_rate(clk);
 	#endif
@@ -463,9 +474,6 @@ static void ls1x_can_setup(void)
 	__raw_writel(__raw_readl(LS1X_CBUS_SECOND1) & (~0x00c00000), LS1X_CBUS_SECOND1);
 	__raw_writel(__raw_readl(LS1X_CBUS_THIRD1) | 0x00c00000, LS1X_CBUS_THIRD1);
 	__raw_writel(__raw_readl(LS1X_CBUS_FOURTHT1) & (~0x00c00000), LS1X_CBUS_FOURTHT1);
-
-	/* 使能can0控制器 */
-	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & (~CAN0_SHUT), LS1X_MUX_CTRL0);
 }
 #endif //#ifdef CONFIG_CAN_SJA1000_PLATFORM
 
@@ -583,14 +591,42 @@ static int __init ls1c_platform_init(void)
 	int err;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
+#ifdef CONFIG_LS1X_FB0
+	/* 使能LCD控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~LCD_SHUT, LS1X_MUX_CTRL0);
+#endif
+#ifdef CONFIG_MTD_NAND_LS1X
+	/* 使能NAND控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA0_SHUT, LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA1_SHUT, LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA2_SHUT, LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~ECC_SHUT, LS1X_MUX_CTRL0);
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~AC97_SHUT, LS1X_MUX_CTRL0);
+#endif
 #if defined(CONFIG_SPI_LS1X_SPI0)
+	/* 使能SPI0控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~SPI0_SHUT, LS1X_MUX_CTRL0);
 	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
 #endif
-#ifdef CONFIG_CAN_SJA1000_PLATFORM
-	ls1x_can_setup();
+#if defined(CONFIG_LS1X_GMAC0)
+	/* 使能GMAC0控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~GMAC_SHUT, LS1X_MUX_CTRL0);
+#endif
+#ifdef CONFIG_USB_DWC2
+	/* 使能OTG控制器 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~USBOTG_SHUT, LS1X_MUX_CTRL0);
 #endif
 #ifdef CONFIG_I2C_LS1X
 	ls1x_i2c_setup();
+#endif
+#ifdef CONFIG_SND_LS1X_SOC_I2S
+	/* 使能IIS控制器 */
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~I2S_SHUT, LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA1_SHUT, LS1X_MUX_CTRL0);
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA2_SHUT, LS1X_MUX_CTRL0);
+#endif
+#ifdef CONFIG_CAN_SJA1000_PLATFORM
+	ls1x_can_setup();
 #endif
 
 	/* 根据需要修改复用引脚关系 */
@@ -606,6 +642,8 @@ static int __init ls1c_platform_init(void)
 #endif
 
 #ifdef CONFIG_SENSORS_LS1X
+	/* 使能ADC控制器 */
+//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~ADC_SHUT, LS1X_MUX_CTRL0);
 	ls1x_hwmon_set_platdata(&bast_hwmon_info);
 #endif
 

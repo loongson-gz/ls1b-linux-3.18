@@ -54,6 +54,7 @@ static int ls1x_i2s_startup(struct snd_pcm_substream *substream,
 		return 0;
 
 	writel(readl(LS1X_MUX_CTRL0) & (~I2S_SHUT), LS1X_MUX_CTRL0);
+	writel(readl(LS1X_MUX_CTRL0) & (~DMA1_SHUT) & (~DMA2_SHUT), LS1X_MUX_CTRL0);
 
 	return 0;
 }
@@ -65,6 +66,7 @@ static void ls1x_i2s_shutdown(struct snd_pcm_substream *substream,
 		return;
 
 	writel(readl(LS1X_MUX_CTRL0) | I2S_SHUT, LS1X_MUX_CTRL0);
+	writel(readl(LS1X_MUX_CTRL0) | DMA1_SHUT | DMA2_SHUT, LS1X_MUX_CTRL0);
 }
 
 static int ls1x_i2s_trigger(struct snd_pcm_substream *substream, int cmd,

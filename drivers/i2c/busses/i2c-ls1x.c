@@ -80,13 +80,13 @@ static short ls1x_poll_status(struct ls1x_i2c *i2c, unsigned char bit)
 	return (loop_cntr > 0);
 }
 
-static int ls1x_xfer_read(struct ls1x_i2c *i2c, unsigned char *buf, int length) 
+static int ls1x_xfer_read(struct ls1x_i2c *i2c, unsigned char *buf, int length)
 {
 	int x;
 
 	for (x=0; x<length; x++) {
 		/* send ACK last not send ACK */
-		if (x != (length -1)) 
+		if (x != (length -1))
 			i2c_writeb(i2c, OCI2C_CMD, OCI2C_CMD_READ_ACK);
 		else
 			i2c_writeb(i2c, OCI2C_CMD, OCI2C_CMD_READ_NACK);
@@ -98,7 +98,7 @@ static int ls1x_xfer_read(struct ls1x_i2c *i2c, unsigned char *buf, int length)
 		*buf++ = i2c_readb(i2c, OCI2C_DATA);
 	}
 	i2c_writeb(i2c,OCI2C_CMD, OCI2C_CMD_STOP);
-		
+
 	return 0;
 }
 
@@ -295,7 +295,7 @@ static int __init ls1x_i2c_init(void)
 	return platform_driver_register(&ls1x_i2c_driver);
 }
 
-arch_initcall(ls1x_i2c_init);
+subsys_initcall_sync(ls1x_i2c_init);
 
 //module_platform_driver(ls1x_i2c_driver);
 
