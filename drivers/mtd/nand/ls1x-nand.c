@@ -495,24 +495,28 @@ static int ls1x_nand_scan(struct mtd_info *mtd)
 	case 2048:
 		switch (chipsize) {
 		case 1024:
-		#if defined(CONFIG_LOONGSON1_LS1A)
-			exit_nand_size = 0x1;
-		#else
-			exit_nand_size = 0x0;
-		#endif
-			break;
+			exit_nand_size = 0x0; break;
 		case 2048:
 			exit_nand_size = 0x1; break;
 		case 4096:
 			exit_nand_size = 0x2; break;
 		case 8192:
 			exit_nand_size = 0x3; break;
+		case 16384:
+			exit_nand_size = 0x4; break;
 		default:
 			exit_nand_size = 0x3; break;
 		}
+		#if defined(CONFIG_CPU_LOONGSON1A)
+		exit_nand_size += 1;
+		#endif
 		break;
 	case 4096:
-		exit_nand_size = 0x4; break;
+		exit_nand_size = 0x4;
+		#if defined(CONFIG_CPU_LOONGSON1A)
+		exit_nand_size += 1;
+		#endif
+		break;
 	case 8192:
 		switch (chipsize) {
 		case 32768:
@@ -524,6 +528,9 @@ static int ls1x_nand_scan(struct mtd_info *mtd)
 		default:
 			exit_nand_size = 0x8; break;
 		}
+		#if defined(CONFIG_CPU_LOONGSON1A)
+		exit_nand_size += 1;
+		#endif
 		break;
 	case 512:
 		switch (chipsize) {
