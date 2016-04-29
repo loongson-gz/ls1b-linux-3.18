@@ -79,15 +79,10 @@ void __init prom_init(void)
 	mdelay(60);
 	/* reset stop */
 	__raw_writel(__raw_readl(LS1X_MUX_CTRL1) | USBHOST_RSTN, LS1X_MUX_CTRL1);
-#else
+#elif defined(CONFIG_LOONGSON1_LS1B)
 	/* 需要复位一次USB控制器，且复位时间要足够长，否则启动时莫名其妙的死机 */
-	#if defined(CONFIG_LOONGSON1_LS1A)
-	#define MUX_CTRL0 LS1X_MUX_CTRL0
-	#define MUX_CTRL1 LS1X_MUX_CTRL1
-	#elif defined(CONFIG_LOONGSON1_LS1B)
 	#define MUX_CTRL0 LS1X_MUX_CTRL1
 	#define MUX_CTRL1 LS1X_MUX_CTRL1
-	#endif
 //	__raw_writel(__raw_readl(MUX_CTRL0) | USB_SHUT, MUX_CTRL0);
 //	__raw_writel(__raw_readl(MUX_CTRL1) & (~USB_RESET), MUX_CTRL1);
 //	mdelay(10);
@@ -99,6 +94,19 @@ void __init prom_init(void)
 	/* reset stop */
 	__raw_writel(__raw_readl(MUX_CTRL1) | USB_RESET, MUX_CTRL1);
 //	#endif
+#elif defined(CONFIG_LOONGSON1_LS1A)
+	#define MUX_CTRL0 LS1X_MUX_CTRL0
+	#define MUX_CTRL1 LS1X_MUX_CTRL1
+
+	/* 关闭所有模块 cam模块必须使能，否则启动不了？i2c模块要提前打开 */
+	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) | 0x01f00000, LS1X_MUX_CTRL0);
+#if defined(CONFIG_USB_OHCI_HCD_PLATFORM) || defined(CONFIG_USB_EHCI_HCD_PLATFORM)
+	__raw_writel(__raw_readl(MUX_CTRL0) & (~USB_SHUT), MUX_CTRL0);
+	__raw_writel(__raw_readl(MUX_CTRL1) & (~USB_RESET), MUX_CTRL1);
+	mdelay(60);
+	/* reset stop */
+	__raw_writel(__raw_readl(MUX_CTRL1) | USB_RESET, MUX_CTRL1);
+#endif
 #endif
 
 	prom_init_cmdline();
