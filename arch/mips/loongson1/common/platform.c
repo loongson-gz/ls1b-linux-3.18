@@ -119,6 +119,45 @@ void __init ls1x_serial_setup(struct platform_device *pdev)
 		p->uartclk = clk_get_rate(clk);
 }
 
+/* DMA */
+#ifdef CONFIG_DMA_LOONGSON1
+#include <dma.h>
+static struct resource ls1x_dma_resources[] = {
+	[0] = {
+		.start = LS1X_DMAC_BASE,
+		.end = LS1X_DMAC_BASE + SZ_4 - 1,
+		.flags = IORESOURCE_MEM,
+	},
+	[1] = {
+		.start = LS1X_DMA0_IRQ,
+		.end = LS1X_DMA0_IRQ,
+		.flags = IORESOURCE_IRQ,
+	},
+	[2] = {
+		.start = LS1X_DMA1_IRQ,
+		.end = LS1X_DMA1_IRQ,
+		.flags = IORESOURCE_IRQ,
+	},
+	[3] = {
+		.start = LS1X_DMA2_IRQ,
+		.end = LS1X_DMA2_IRQ,
+		.flags = IORESOURCE_IRQ,
+	},
+};
+
+struct platform_device ls1x_dma_pdev = {
+	.name		= "ls1x-dma",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(ls1x_dma_resources),
+	.resource	= ls1x_dma_resources,
+};
+
+void __init ls1x_dma_set_platdata(struct plat_ls1x_dma *pdata)
+{
+	ls1x_dma_pdev.dev.platform_data = pdata;
+}
+#endif
+
 /* Synopsys Ethernet GMAC */
 #if defined(CONFIG_STMMAC_ETH)
 static struct stmmac_mdio_bus_data ls1x_mdio_bus_data = {
@@ -501,6 +540,36 @@ struct platform_device ls1x_nand_pdev = {
 	.resource		= ls1x_nand_resources,
 };
 #endif //CONFIG_MTD_NAND_LS1X
+
+/* NAND Flash */
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+#include <nand.h>
+static struct resource ls1x_nand_resources[] = {
+	[0] = {
+		.start	= LS1X_NAND_BASE,
+		.end	= LS1X_NAND_BASE + SZ_32 - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+	[1] = {
+		/* DMA channel 0 is dedicated to NAND */
+		.start	= LS1X_DMA_CHANNEL0,
+		.end	= LS1X_DMA_CHANNEL0,
+		.flags	= IORESOURCE_DMA,
+	},
+};
+
+struct platform_device ls1x_nand_pdev = {
+	.name		= "ls1x-nand",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(ls1x_nand_resources),
+	.resource	= ls1x_nand_resources,
+};
+
+void __init ls1x_nand_set_platdata(struct plat_ls1x_nand *pdata)
+{
+	ls1x_nand_pdev.dev.platform_data = pdata;
+}
+#endif
 
 #ifdef CONFIG_SPI_LS1X_SPI0
 #include <linux/spi/spi_ls1x.h>

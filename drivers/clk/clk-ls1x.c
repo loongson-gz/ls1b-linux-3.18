@@ -203,6 +203,7 @@ void __init ls1x_clk_init(void)
 	}
 #endif
 	clk_register_clkdev(clk, "ahb_clk", NULL);
+	clk_register_clkdev(clk, "ls1x-dma", NULL);
 	clk_register_clkdev(clk, "stmmaceth", NULL);
 
 	/* clock derived from AHB clk */
@@ -211,6 +212,7 @@ void __init ls1x_clk_init(void)
 					DIV_APB);
 	clk_register_clkdev(clk, "apb_clk", NULL);
 	clk_register_clkdev(clk, "ls1x_i2c", NULL);
+	clk_register_clkdev(clk, "ls1x-nand", NULL);
 	clk_register_clkdev(clk, "ls1x_pwmtimer", NULL);
 	clk_register_clkdev(clk, "ls1x_spi", NULL);
 	clk_register_clkdev(clk, "ls1x_wdt", NULL);

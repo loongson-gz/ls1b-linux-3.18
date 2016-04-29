@@ -15,6 +15,67 @@
 #include <loongson1.h>
 #include <irq.h>
 
+#ifdef CONFIG_DMA_LOONGSON1
+#include <dma.h>
+struct plat_ls1x_dma ls1x_dma_pdata = {
+	.nr_channels	= 1,
+};
+#endif
+
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+#include <nand.h>
+static struct mtd_partition ls1x_nand_parts[] = {
+	{
+		.name	= "kernel",
+		.offset	= 0,
+		.size	= 14*1024*1024,
+	}, {
+		.name	= "rootfs",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= 100*1024*1024,
+	}, {
+		.name	= "data",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= MTDPART_SIZ_FULL,
+	},
+};
+
+struct plat_ls1x_nand ls1x_nand_pdata = {
+	.parts		= ls1x_nand_parts,
+	.nr_parts	= ARRAY_SIZE(ls1x_nand_parts),
+	.hold_cycle	= 0x2,
+	.wait_cycle	= 0xc,
+};
+
+static void ls1x_nand_setup(void)
+{
+	int val;
+#if 1
+	/* NAND复用LPC PWM01 */
+	val = __raw_readl(LS1X_MUX_CTRL0);
+	val |= (NAND1_USE_PWM01 | NAND_D45_USE_LPC | NAND_D03_USE_LPC);
+	__raw_writel(val, LS1X_MUX_CTRL0);
+
+	val = __raw_readl(LS1X_GPIO_CFG2);
+	val &= ~(0xffff << LPC_OFFSET);	//nand_D0~D7 & nand_control pin
+	__raw_writel(val, LS1X_GPIO_CFG2);
+#else
+	/* NAND复用SPI1 PWM23 */
+	val = __raw_readl(LS1X_MUX_CTRL0);
+	val |= (NAND_D45_USE_PWM23 | NAND_D03_USE_SPI1);
+	__raw_writel(val, LS1X_MUX_CTRL0);
+
+	val = __raw_readl(LS1X_GPIO_CFG1);
+	val &= ~(0xf << SPI1_OFFSET);				//nand_D0~D3
+	__raw_writel(val, LS1X_GPIO_CFG1);
+
+	val = __raw_readl(LS1X_GPIO_CFG2);
+	val &= ~(0xfff << NAND_OFFSET);	//nand_D4~D7 & nand_control pin
+	__raw_writel(val, LS1X_GPIO_CFG2);
+#endif
+}
+#endif
+
 #ifdef CONFIG_MTD_NAND_LS1X
 #include <ls1x_nand.h>
 static struct mtd_partition ls1x_nand_partitions[] = {
@@ -91,7 +152,7 @@ static struct mmc_spi_platform_data mmc_spi __maybe_unused = {
 	.cd_gpio = DETECT_GPIO,
 //	.caps = MMC_CAP_NEEDS_POLL,
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* 3.3V only */
-};	
+};
 #endif  /* defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE) */
 
 #ifdef CONFIG_SPI_LS1X_SPI0
@@ -235,6 +296,12 @@ static void ls1x_can_setup(void)
 
 static struct platform_device *ls1a_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
+#ifdef CONFIG_DMA_LOONGSON1
+	&ls1x_dma_pdev,
+#endif
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+	&ls1x_nand_pdev,
+#endif
 #ifdef CONFIG_MTD_NAND_LS1X
 	&ls1x_nand_pdev,
 #endif
@@ -300,9 +367,16 @@ static int __init ls1a_platform_init(void)
 	int x __maybe_unused;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
+#ifdef CONFIG_DMA_LOONGSON1
+	ls1x_dma_set_platdata(&ls1x_dma_pdata);
+#endif
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+	ls1x_nand_set_platdata(&ls1x_nand_pdata);
+	ls1x_nand_setup();
+#endif
 #if defined(CONFIG_SPI_LS1X_SPI0)
 	/* disable gpio40-43 */
-	__raw_writel(__raw_readl(LS1X_GPIO_CFG1) & ~(SPI0_MASK << SPI0_OFFSET), 
+	__raw_writel(__raw_readl(LS1X_GPIO_CFG1) & ~(SPI0_MASK << SPI0_OFFSET),
 			LS1X_GPIO_CFG1);
 	x = __raw_readl(LS1X_MUX_CTRL0);
 	x |= SPI0_USE_CAN0_TX;	/* 解除CAN片选复用 */

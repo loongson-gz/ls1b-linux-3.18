@@ -15,12 +15,45 @@
 #include <loongson1.h>
 #include <irq.h>
 
+#ifdef CONFIG_DMA_LOONGSON1
+#include <dma.h>
+struct plat_ls1x_dma ls1x_dma_pdata = {
+	.nr_channels	= 1,
+};
+#endif
+
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+#include <nand.h>
+static struct mtd_partition ls1x_nand_parts[] = {
+	{
+		.name	= "kernel",
+		.offset	= 0,
+		.size	= 14*1024*1024,
+	}, {
+		.name	= "rootfs",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= 100*1024*1024,
+	}, {
+		.name	= "data",
+		.offset	= MTDPART_OFS_APPEND,
+		.size	= MTDPART_SIZ_FULL,
+	},
+};
+
+struct plat_ls1x_nand ls1x_nand_pdata = {
+	.parts		= ls1x_nand_parts,
+	.nr_parts	= ARRAY_SIZE(ls1x_nand_parts),
+	.hold_cycle	= 0x2,
+	.wait_cycle	= 0xc,
+};
+#endif
+
 #ifdef CONFIG_MTD_NAND_LS1X
 #include <ls1x_nand.h>
 static struct mtd_partition ls1x_nand_partitions[] = {
 	{
 		.name	= "kernel",
-		.offset	= MTDPART_OFS_APPEND,
+		.offset	= 0,
 		.size	= 14*1024*1024,
 	}, {
 		.name	= "rootfs",
@@ -91,7 +124,7 @@ static struct mmc_spi_platform_data mmc_spi __maybe_unused = {
 	.cd_gpio = DETECT_GPIO,
 //	.caps = MMC_CAP_NEEDS_POLL,
 	.ocr_mask = MMC_VDD_32_33 | MMC_VDD_33_34, /* 3.3V only */
-};	
+};
 #endif  /* defined(CONFIG_MMC_SPI) || defined(CONFIG_MMC_SPI_MODULE) */
 
 #ifdef CONFIG_SPI_LS1X_SPI0
@@ -319,6 +352,12 @@ static void ls1x_can_setup(void)
 
 static struct platform_device *ls1b_platform_devices[] __initdata = {
 	&ls1x_uart_pdev,
+#ifdef CONFIG_DMA_LOONGSON1
+	&ls1x_dma_pdev,
+#endif
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+	&ls1x_nand_pdev,
+#endif
 #ifdef CONFIG_MTD_NAND_LS1X
 	&ls1x_nand_pdev,
 #endif
@@ -395,6 +434,12 @@ static int __init ls1b_platform_init(void)
 	int err;
 
 	ls1x_serial_setup(&ls1x_uart_pdev);
+#ifdef CONFIG_DMA_LOONGSON1
+	ls1x_dma_set_platdata(&ls1x_dma_pdata);
+#endif
+#ifdef CONFIG_MTD_NAND_LOONGSON1
+	ls1x_nand_set_platdata(&ls1x_nand_pdata);
+#endif
 #if defined(CONFIG_SPI_LS1X_SPI0)
 	spi_register_board_info(ls1x_spi0_devices, ARRAY_SIZE(ls1x_spi0_devices));
 #endif

@@ -42,6 +42,7 @@
 /* Loongson 1 Register Bases */
 #define LS1X_MUX_BASE			0x1fd00420
 #define LS1X_INTC_BASE			0x1fd01040
+#define LS1X_DMAC_BASE			0x1fd01160
 #if defined(CONFIG_LOONGSON1_LS1C)
 #define	LS1X_OTG_BASE			0x1fe00000
 #define LS1X_EHCI_BASE			0x1fe20000

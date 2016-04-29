@@ -125,6 +125,15 @@ config MPC512X_DMA
 	---help---
 	  Enable support for the Freescale MPC512x built-in DMA engine.
 
+config DMA_LOONGSON1
+	tristate "Loongson1 DMA support"
+	depends on MACH_LOONGSON1
+	select DMA_ENGINE
+	select DMA_VIRTUAL_CHANNELS
+	help
+	  This selects support for the DMA controller in Loongson1 SoCs,
+	  and is required by Loongson1 NAND Flash and AC97 support.
+
 source "drivers/dma/bestcomm/Kconfig"
 
 config MV_XOR
@@ -368,7 +377,7 @@ config MOXART_DMA
 	select DMA_VIRTUAL_CHANNELS
 	help
 	  Enable support for the MOXA ART SoC DMA controller.
- 
+
 config FSL_EDMA
 	tristate "Freescale eDMA engine support"
 	depends on OF
