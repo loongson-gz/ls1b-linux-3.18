@@ -17,6 +17,7 @@
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
 #include <linux/sizes.h>
+#include <linux/delay.h>
 
 #include <nand.h>
 
@@ -220,6 +221,7 @@ static void ls1x_nand_select_chip(struct mtd_info *mtd, int chip)
 
 static int ls1x_nand_dev_ready(struct mtd_info *mtd)
 {
+#if 1
 	struct nand_chip *chip = mtd->priv;
 	struct ls1x_nand *nand = nand_get_controller_data(chip);
 
@@ -227,6 +229,11 @@ static int ls1x_nand_dev_ready(struct mtd_info *mtd)
 		return 1;
 
 	return 0;
+#else
+	/* 部分nand flash读时OP_DONE不会置位，如K9F5608U0D */
+	udelay(80);
+	return 1;
+#endif
 }
 
 static uint8_t ls1x_nand_read_byte(struct mtd_info *mtd)
@@ -506,7 +513,7 @@ static int ls1x_nand_probe(struct platform_device *pdev)
 	nand_writel(nand, NAND_CMD, 0x00);
 	nand_writel(nand, NAND_ADDRL, 0x00);
 	nand_writel(nand, NAND_ADDRH, 0x00);
-	nand_writel(nand, NAND_PARAM, 0x00005000);
+	nand_writel(nand, NAND_PARAM, 0x00);
 	nand_writel(nand, NAND_OP_NUM, 0x00);
 	nand_writel(nand, NAND_CS_RDY, 0x88442211);
 
