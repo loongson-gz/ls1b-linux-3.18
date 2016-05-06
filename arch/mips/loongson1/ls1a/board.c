@@ -22,7 +22,7 @@ struct plat_ls1x_dma ls1x_dma_pdata = {
 };
 #endif
 
-#ifdef CONFIG_MTD_NAND_LOONGSON1
+#if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 #include <nand.h>
 static struct mtd_partition ls1x_nand_parts[] = {
 	{
@@ -74,30 +74,6 @@ static void ls1x_nand_setup(void)
 	__raw_writel(val, LS1X_GPIO_CFG2);
 #endif
 }
-#endif
-
-#ifdef CONFIG_MTD_NAND_LS1X
-#include <ls1x_nand.h>
-static struct mtd_partition ls1x_nand_partitions[] = {
-	{
-		.name	= "kernel",
-		.offset	= 0,
-		.size	= 14*1024*1024,
-	}, {
-		.name	= "rootfs",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= 100*1024*1024,
-	}, {
-		.name	= "data",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= MTDPART_SIZ_FULL,
-	},
-};
-
-struct ls1x_nand_platform_data ls1x_nand_parts = {
-	.parts		= ls1x_nand_partitions,
-	.nr_parts	= ARRAY_SIZE(ls1x_nand_partitions),
-};
 #endif
 
 #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
@@ -299,10 +275,7 @@ static struct platform_device *ls1a_platform_devices[] __initdata = {
 #ifdef CONFIG_DMA_LOONGSON1
 	&ls1x_dma_pdev,
 #endif
-#ifdef CONFIG_MTD_NAND_LOONGSON1
-	&ls1x_nand_pdev,
-#endif
-#ifdef CONFIG_MTD_NAND_LS1X
+#if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 	&ls1x_nand_pdev,
 #endif
 #if defined(CONFIG_LS1X_GMAC0)
@@ -370,7 +343,7 @@ static int __init ls1a_platform_init(void)
 #ifdef CONFIG_DMA_LOONGSON1
 	ls1x_dma_set_platdata(&ls1x_dma_pdata);
 #endif
-#ifdef CONFIG_MTD_NAND_LOONGSON1
+#if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 	ls1x_nand_set_platdata(&ls1x_nand_pdata);
 	ls1x_nand_setup();
 #endif

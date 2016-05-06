@@ -20,7 +20,7 @@
 #include <linux/irq.h>
 #include <linux/slab.h>
 
-#include <ls1x_nand.h>
+#include <nand.h>
 
 #define DMA_ACCESS_ADDR	0x1fe78040	/* DMA对NAND操作的地址 */
 #define ORDER_ADDR_IN	0x1fd01160	/* DMA配置寄存器 */
@@ -122,38 +122,6 @@ struct ls1x_nand_info {
 	unsigned int	seqin_column;
 	unsigned int	seqin_page_addr;
 };
-
-static void nand_gpio_init(void)
-{
-//    *((unsigned int *)GPIO_MUX_CTRL) = NAND_GPIO_MUX;
-//    *((unsigned int *)GPIO_MUX_CTRL) = NAND_GPIO_MUX;
-#ifdef CONFIG_LOONGSON1_LS1A
-{
-	int val;
-#ifdef CONFIG_NAND_USE_LPC_PWM01 //NAND复用LPC PWM01
-	val = __raw_readl(GPIO_MUX);
-	val |= 0x2a000000;
-	__raw_writel(val, GPIO_MUX);
-
-	val = __raw_readl(GPIO_CONF2);
-	val &= ~(0xffff<<6);			//nand_D0~D7 & nand_control pin
-	__raw_writel(val, GPIO_CONF2);
-#elif CONFIG_NAND_USE_SPI1_PWM23 //NAND复用SPI1 PWM23
-	val = __raw_readl(GPIO_MUX);
-	val |= 0x14000000;
-	__raw_writel(val, GPIO_MUX);
-
-	val = __raw_readl(GPIO_CONF1);
-	val &= ~(0xf<<12);				//nand_D0~D3
-	__raw_writel(val, GPIO_CONF1);
-
-	val = __raw_readl(GPIO_CONF2);
-	val &= ~(0xfff<<12);			//nand_D4~D7 & nand_control pin
-	__raw_writel(val, GPIO_CONF2);
-#endif
-}
-#endif
-}
 
 static int ls1x_nand_waitfunc(struct mtd_info *mtd, struct nand_chip *chip)
 {
@@ -558,7 +526,7 @@ static int ls1x_nand_scan(struct mtd_info *mtd)
 
 static int ls1x_nand_probe(struct platform_device *pdev)
 {
-	struct ls1x_nand_platform_data *pdata;
+	struct plat_ls1x_nand *pdata;
 	struct ls1x_nand_info *info;
 	struct nand_chip *chip;
 	struct mtd_info *mtd;
@@ -634,7 +602,6 @@ static int ls1x_nand_probe(struct platform_device *pdev)
 		goto fail_free_buf;
 	}
 
-	nand_gpio_init();
 	ls1x_dma_init(info);
 	ls1x_nand_init_hw(info);
 //	chip->cmdfunc(mtd, NAND_CMD_RESET, 0, 0);

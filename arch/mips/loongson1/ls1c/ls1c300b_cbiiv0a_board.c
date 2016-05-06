@@ -22,7 +22,7 @@ struct plat_ls1x_dma ls1x_dma_pdata = {
 };
 #endif
 
-#ifdef CONFIG_MTD_NAND_LOONGSON1
+#if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 #include <nand.h>
 static struct mtd_partition ls1x_nand_parts[] = {
 	{
@@ -49,34 +49,6 @@ struct plat_ls1x_nand ls1x_nand_pdata = {
 	.nr_parts	= ARRAY_SIZE(ls1x_nand_parts),
 	.hold_cycle	= 0x2,
 	.wait_cycle	= 0xc,
-};
-#endif
-
-#ifdef CONFIG_MTD_NAND_LS1X
-#include <ls1x_nand.h>
-static struct mtd_partition ls1x_nand_partitions[] = {
-	{
-		.name	= "bootloader",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= 1024*1024,
-	},  {
-		.name	= "kernel",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= 13*1024*1024,
-	},  {
-		.name	= "rootfs",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= 50*1024*1024,
-	},  {
-		.name	= "data",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= MTDPART_SIZ_FULL,
-	},
-};
-
-struct ls1x_nand_platform_data ls1x_nand_parts = {
-	.parts		= ls1x_nand_partitions,
-	.nr_parts	= ARRAY_SIZE(ls1x_nand_partitions),
 };
 #endif
 
@@ -567,10 +539,7 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #ifdef CONFIG_DMA_LOONGSON1
 	&ls1x_dma_pdev,
 #endif
-#ifdef CONFIG_MTD_NAND_LOONGSON1
-	&ls1x_nand_pdev,
-#endif
-#ifdef CONFIG_MTD_NAND_LS1X
+#if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 	&ls1x_nand_pdev,
 #endif
 #if defined(CONFIG_LS1X_GMAC0)
@@ -659,7 +628,7 @@ static int __init ls1c_platform_init(void)
 #ifdef CONFIG_DMA_LOONGSON1
 	ls1x_dma_set_platdata(&ls1x_dma_pdata);
 #endif
-#ifdef CONFIG_MTD_NAND_LOONGSON1
+#if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 	ls1x_nand_set_platdata(&ls1x_nand_pdata);
 	/* 使能NAND控制器 */
 	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA0_SHUT, LS1X_MUX_CTRL0);
@@ -671,14 +640,6 @@ static int __init ls1c_platform_init(void)
 #ifdef CONFIG_LS1X_FB0
 	/* 使能LCD控制器 */
 	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~LCD_SHUT, LS1X_MUX_CTRL0);
-#endif
-#ifdef CONFIG_MTD_NAND_LS1X
-	/* 使能NAND控制器 */
-	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA0_SHUT, LS1X_MUX_CTRL0);
-//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA1_SHUT, LS1X_MUX_CTRL0);
-//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~DMA2_SHUT, LS1X_MUX_CTRL0);
-//	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~ECC_SHUT, LS1X_MUX_CTRL0);
-	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~AC97_SHUT, LS1X_MUX_CTRL0);
 #endif
 #if defined(CONFIG_SPI_LS1X_SPI0)
 	/* 使能SPI0控制器 */
