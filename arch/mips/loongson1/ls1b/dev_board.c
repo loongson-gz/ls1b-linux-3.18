@@ -370,6 +370,7 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 #endif
 #ifdef CONFIG_SND_LS1X_SOC
 	&ls1x_pcm_pdev,
+	&ls1x_audio_pdev,
 #endif
 #ifdef CONFIG_PWM_LS1X_PWM0
 	&ls1x_pwm0_pdev,

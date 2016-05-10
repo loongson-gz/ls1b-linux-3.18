@@ -564,6 +564,7 @@ static struct platform_device *ls1c_platform_devices[] __initdata = {
 #endif
 #ifdef CONFIG_SND_LS1X_SOC
 	&ls1x_pcm_pdev,
+	&ls1x_audio_pdev,
 #endif
 #ifdef CONFIG_GPIO_PCA953X
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)

@@ -729,6 +729,11 @@ struct platform_device ls1x_pcm_pdev = {
 	.name = "loongson1-pcm-audio",
 	.id = -1,
 };
+
+struct platform_device ls1x_audio_pdev = {
+	.name = "ls1x-audio",
+	.id = -1,
+};
 #endif
 
 #ifdef CONFIG_PWM_LS1X_PWM0

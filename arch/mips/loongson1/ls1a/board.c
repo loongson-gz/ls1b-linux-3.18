@@ -323,6 +323,7 @@ static struct platform_device *ls1a_platform_devices[] __initdata = {
 #endif
 #ifdef CONFIG_SND_LS1X_SOC
 	&ls1x_pcm_pdev,
+	&ls1x_audio_pdev,
 #endif
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #ifdef CONFIG_LS1X_CAN0

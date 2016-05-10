@@ -89,36 +89,51 @@ static struct snd_soc_card ls1x_ac97_machine = {
 
 static struct platform_device *ls1x_snd_device;
 
-static int __init ls1x_init(void)
+static int ls1x_probe(struct platform_device *pdev)
 {
+	struct snd_soc_card *card;
 	int ret;
-
-	ls1x_snd_device = platform_device_alloc("soc-audio", -1);
-	if (!ls1x_snd_device)
-		return -ENOMEM;
-
 #if defined(CONFIG_SND_LS1X_SOC_I2S)
-	platform_set_drvdata(ls1x_snd_device, &ls1x_i2s_machine);
+	card = &ls1x_i2s_machine;
 #elif defined(CONFIG_SND_LS1X_SOC_AC97)
-	platform_set_drvdata(ls1x_snd_device, &ls1x_ac97_machine);
+	card = &ls1x_ac97_machine;
 #endif
-	ret = platform_device_add(ls1x_snd_device);
 
-	if (ret)
-		platform_device_put(ls1x_snd_device);
+	card->dev = &pdev->dev;
+
+	ret = snd_soc_register_card(card);
+	if (ret) {
+		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
+			ret);
+		platform_device_unregister(ls1x_snd_device);
+	}
 
 	return ret;
 }
 
-static void __exit ls1x_exit(void)
+static int ls1x_remove(struct platform_device *pdev)
 {
+	struct snd_soc_card *card = platform_get_drvdata(pdev);
+
+	snd_soc_unregister_card(card);
 	platform_device_unregister(ls1x_snd_device);
+
+	return 0;
 }
 
-module_init(ls1x_init);
-module_exit(ls1x_exit);
+static struct platform_driver ls1x_driver = {
+	.driver		= {
+		.name	= "ls1x-audio",
+		.owner	= THIS_MODULE,
+	},
+	.probe		= ls1x_probe,
+	.remove		= ls1x_remove,
+};
+
+module_platform_driver(ls1x_driver);
 
 /* Module information */
 MODULE_AUTHOR("Tang Haifeng <tanghaifeng-gz@loongson.cn>");
 MODULE_DESCRIPTION("ALSA SoC ls1x board Audio support");
 MODULE_LICENSE("GPL");
+MODULE_ALIAS("platform:ls1x-audio");
