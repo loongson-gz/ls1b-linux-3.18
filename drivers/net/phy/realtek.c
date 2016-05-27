@@ -78,6 +78,20 @@ static int rtl8201el_config_init(struct phy_device *phydev)
 	return err;
 }
 
+static int rtl8306e_config_init(struct phy_device *phydev)
+{
+	return 0;
+}
+
+static int rtl8306e_read_status(struct phy_device *phydev)
+{
+	phydev->link = 1;
+	phydev->speed = SPEED_100;
+	phydev->duplex = DUPLEX_FULL;
+
+	return 0;
+}
+
 static struct phy_driver realtek_drvs[] = {
 	{
 		.phy_id         = 0x001cc815,
@@ -123,6 +137,17 @@ static struct phy_driver realtek_drvs[] = {
 		.suspend	= genphy_suspend,
 		.resume		= genphy_resume,
 		.driver		= { .owner = THIS_MODULE,},
+	}, {
+		.phy_id         = 0x001cc852,
+		.name           = "RTL8306E Ethernet",
+		.phy_id_mask    = 0x001fffff,
+		.features       = PHY_BASIC_FEATURES,
+		.flags          = PHY_HAS_INTERRUPT,
+		.soft_reset     = &genphy_soft_reset,
+		.config_aneg    = &genphy_config_aneg,
+		.config_init    = &rtl8306e_config_init,
+		.read_status    = &rtl8306e_read_status,
+		.driver         = { .owner = THIS_MODULE,},
 	},
 };
 
