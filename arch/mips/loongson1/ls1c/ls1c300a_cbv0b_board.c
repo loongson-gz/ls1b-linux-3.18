@@ -171,9 +171,6 @@ static int pca9555_setup_0(struct i2c_client *client,
 			       unsigned gpio_base, unsigned ngpio,
 			       void *context)
 {
-	gpio_request(PCA9555_GPIO_IRQ_0, "pca9555 gpio irq0");
-	gpio_direction_input(PCA9555_GPIO_IRQ_0);
-
 	gpio_request(gpio_base + 0, "mfrc531 irq");
 	gpio_direction_input(gpio_base + 0);
 	gpio_request(gpio_base + 1, "mfrc531 ncs");
@@ -199,8 +196,6 @@ static int pca9555_setup_1(struct i2c_client *client,
 			       unsigned gpio_base, unsigned ngpio,
 			       void *context)
 {
-	gpio_request(PCA9555_GPIO_IRQ_1, "pca9555 gpio irq1");
-	gpio_direction_input(PCA9555_GPIO_IRQ_1);
 	return 0;
 }
 
@@ -219,8 +214,6 @@ static int pca9555_setup_2(struct i2c_client *client,
 			       unsigned gpio_base, unsigned ngpio,
 			       void *context)
 {
-	gpio_request(PCA9555_GPIO_IRQ_2, "pca9555 gpio irq2");
-	gpio_direction_input(PCA9555_GPIO_IRQ_2);
 	return 0;
 }
 
@@ -662,6 +655,15 @@ static int __init ls1c_platform_init(void)
 	/* 使能ADC控制器 */
 //	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~ADC_SHUT, LS1X_MUX_CTRL0);
 	ls1x_hwmon_set_platdata(&bast_hwmon_info);
+#endif
+
+#ifdef CONFIG_GPIO_PCA953X
+	gpio_request(PCA9555_GPIO_IRQ_0, "pca9555 gpio irq0");
+	gpio_direction_input(PCA9555_GPIO_IRQ_0);
+	gpio_request(PCA9555_GPIO_IRQ_1, "pca9555 gpio irq1");
+	gpio_direction_input(PCA9555_GPIO_IRQ_1);
+	gpio_request(PCA9555_GPIO_IRQ_2, "pca9555 gpio irq2");
+	gpio_direction_input(PCA9555_GPIO_IRQ_2);
 #endif
 
 	err = platform_add_devices(ls1c_platform_devices,

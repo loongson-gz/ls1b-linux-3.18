@@ -114,8 +114,6 @@ static int pca9555_setup(struct i2c_client *client,
 			       unsigned gpio_base, unsigned ngpio,
 			       void *context)
 {
-	gpio_request(PCA9555_GPIO_IRQ, "pca9555 gpio irq");
-	gpio_direction_input(PCA9555_GPIO_IRQ);
 	return 0;
 }
 
@@ -701,6 +699,11 @@ static int __init ls1c_platform_init(void)
 	/* 使能ADC控制器 */
 //	__raw_writel(__raw_readl(LS1X_MUX_CTRL0) & ~ADC_SHUT, LS1X_MUX_CTRL0);
 	ls1x_hwmon_set_platdata(&bast_hwmon_info);
+#endif
+
+#ifdef CONFIG_GPIO_PCA953X
+	gpio_request(PCA9555_GPIO_IRQ, "pca9555 gpio irq");
+	gpio_direction_input(PCA9555_GPIO_IRQ);
 #endif
 
 	err = platform_add_devices(ls1c_platform_devices,
