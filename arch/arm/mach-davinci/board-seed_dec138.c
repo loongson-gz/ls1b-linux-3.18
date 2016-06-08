@@ -712,6 +712,154 @@ static __init int da850_wl12xx_init(void)
 
 #endif /* CONFIG_DA850_WL12XX */
 
+
+#if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_MUSB_DA8XX)
+#define DA850_USB1_VBUS_PIN		GPIO_TO_PIN(2, 4)
+#define DA850_USB1_OC_PIN		GPIO_TO_PIN(6, 13)
+
+static irqreturn_t da850_evm_usb_ocic_irq(int irq, void *dev_id);
+static da8xx_ocic_handler_t evm_usb_ocic_handler;
+
+static const short da850_evm_usb11_pins[] = {
+	DA850_GPIO2_4, DA850_GPIO6_13,
+	-1
+};
+
+static int evm_usb_set_power(unsigned port, int on)
+{
+	gpio_set_value(DA850_USB1_VBUS_PIN, on);
+	return 0;
+}
+
+static int evm_usb_get_power(unsigned port)
+{
+	return gpio_get_value(DA850_USB1_VBUS_PIN);
+}
+
+static int evm_usb_get_oci(unsigned port)
+{
+	return !gpio_get_value(DA850_USB1_OC_PIN);
+}
+
+static int evm_usb_ocic_notify(da8xx_ocic_handler_t handler)
+{
+	int irq         = gpio_to_irq(DA850_USB1_OC_PIN);
+	int error       = 0;
+
+	if (handler != NULL) {
+		evm_usb_ocic_handler = handler;
+
+		error = request_irq(irq, da850_evm_usb_ocic_irq,
+					IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+					"OHCI over-current indicator", NULL);
+		if (error)
+			pr_err("%s: could not request IRQ to watch "
+				"over-current indicator changes\n", __func__);
+	} else {
+		free_irq(irq, NULL);
+	}
+	return error;
+}
+
+static struct da8xx_ohci_root_hub da850_evm_usb11_pdata = {
+	.set_power      = evm_usb_set_power,
+	.get_power      = evm_usb_get_power,
+	.get_oci        = evm_usb_get_oci,
+	.ocic_notify    = evm_usb_ocic_notify,
+	/* TPS2087 switch @ 5V */
+	.potpgt         = (3 + 1) / 2,  /* 3 ms max */
+};
+
+static irqreturn_t da850_evm_usb_ocic_irq(int irq, void *dev_id)
+{
+	evm_usb_ocic_handler(&da850_evm_usb11_pdata, 1);
+	return IRQ_HANDLED;
+}
+
+static __init void da850_evm_usb_init(void)
+{
+	int ret;
+	u32 cfgchip2;
+
+	/*
+	 * Set up USB clock/mode in the CFGCHIP2 register.
+	 * FYI:  CFGCHIP2 is 0x0000ef00 initially.
+	 */
+	cfgchip2 = __raw_readl(DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP2_REG));
+
+	/* USB2.0 PHY reference clock is 24 MHz */
+	cfgchip2 &= ~CFGCHIP2_REFFREQ;
+	cfgchip2 |=  CFGCHIP2_REFFREQ_24MHZ;
+
+	/*
+	 * Select internal reference clock for USB 2.0 PHY
+	 * and use it as a clock source for USB 1.1 PHY
+	 * (this is the default setting anyway).
+	 */
+	cfgchip2 &= ~CFGCHIP2_USB1PHYCLKMUX;
+	cfgchip2 |=  CFGCHIP2_USB2PHYCLKMUX;
+
+	/*
+	 * We have to override VBUS/ID signals when MUSB is configured into the
+	 * host-only mode -- ID pin will float if no cable is connected, so the
+	 * controller won't be able to drive VBUS thinking that it's a B-device.
+	 * Otherwise, we want to use the OTG mode and enable VBUS comparators.
+	 */
+	cfgchip2 &= ~CFGCHIP2_OTGMODE;
+#ifdef	CONFIG_USB_MUSB_HOST
+	cfgchip2 |=  CFGCHIP2_FORCE_HOST;
+#else
+	cfgchip2 |=  CFGCHIP2_SESENDEN | CFGCHIP2_VBDTCTEN;
+#endif
+
+	__raw_writel(cfgchip2, DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP2_REG));
+
+	ret = da8xx_register_usb20(1000, 3);
+	if (ret) {
+		pr_warning("%s: USB 2.0 registration failed: %d\n",
+			   __func__, ret);
+		goto usb11_setup_fail;
+	}
+
+	ret = davinci_cfg_reg_list(da850_evm_usb11_pins);
+	if (ret) {
+		pr_warning("%s: USB 1.1 PinMux setup failed: %d\n",
+			__func__, ret);
+		return;
+	}
+
+	ret = gpio_request_one(DA850_USB1_VBUS_PIN,
+			GPIOF_DIR_OUT, "USB1 VBUS");
+	if (ret < 0) {
+		pr_err("%s: failed to request GPIO for USB 1.1 port "
+			"power control: %d\n", __func__, ret);
+		return;
+	}
+
+	ret = gpio_request_one(DA850_USB1_OC_PIN,
+			GPIOF_DIR_IN, "USB1 OC");
+	if (ret < 0) {
+		pr_err("%s: failed to request GPIO for USB 1.1 port "
+			"over-current indicator: %d\n", __func__, ret);
+		goto usb11_setup_oc_fail;
+	}
+
+	ret = da8xx_register_usb11(&da850_evm_usb11_pdata);
+	if (ret) {
+		pr_warning("%s: USB 1.1 registration failed: %d\n",
+			__func__, ret);
+		goto usb11_setup_fail;
+	}
+
+	return;
+
+usb11_setup_fail:
+	gpio_free(DA850_USB1_OC_PIN);
+usb11_setup_oc_fail:
+	gpio_free(DA850_USB1_VBUS_PIN);
+}
+#endif
+
 #define DA850EVM_SATA_REFCLKPN_RATE	(100 * 1000 * 1000)
 
 static __init void da850_evm_init(void)
@@ -844,6 +992,10 @@ static __init void da850_evm_init(void)
 	ret = da850_register_sata(DA850EVM_SATA_REFCLKPN_RATE);
 	if (ret)
 		pr_warn("%s: SATA registration failed: %d\n", __func__, ret);
+
+#if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_MUSB_DA8XX)
+	da850_evm_usb_init();
+#endif
 
 	ret = da8xx_register_rproc();
 	if (ret)
