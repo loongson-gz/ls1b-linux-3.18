@@ -608,6 +608,12 @@ struct da8xx_lcdc_platform_data sharp_lk043t1dg01_pdata = {
 	.type			= "Sharp_LK043T1DG01",
 };
 
+struct da8xx_lcdc_platform_data innolux_at050tn22_pdata = {
+	.manu_name = "INNOLUX",
+	.controller_data = &lcd_cfg,
+	.type = "INNOLUX_AT050TN22",
+};
+
 static struct resource da8xx_lcdc_resources[] = {
 	[0] = { /* registers */
 		.start  = DA8XX_LCD_CNTRL_BASE,

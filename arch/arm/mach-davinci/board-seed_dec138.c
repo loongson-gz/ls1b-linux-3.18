@@ -804,8 +804,10 @@ static __init void da850_evm_init(void)
 	if (ret)
 		pr_warn("%s: LCD initialization failed: %d\n", __func__, ret);
 
-	sharp_lk043t1dg01_pdata.panel_power_ctrl = da850_panel_power_ctrl,
-	ret = da8xx_register_lcdc(&sharp_lk043t1dg01_pdata);
+/*	sharp_lk043t1dg01_pdata.panel_power_ctrl = da850_panel_power_ctrl,
+	ret = da8xx_register_lcdc(&sharp_lk043t1dg01_pdata);*/
+	innolux_at050tn22_pdata.panel_power_ctrl = da850_panel_power_ctrl,
+	ret = da8xx_register_lcdc(&innolux_at050tn22_pdata);
 	if (ret)
 		pr_warn("%s: LCDC registration failed: %d\n", __func__, ret);
 

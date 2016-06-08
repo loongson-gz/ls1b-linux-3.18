@@ -256,6 +256,21 @@ static struct fb_videomode known_lcd_panels[] = {
 		.vsync_len      = 3,
 		.sync           = 0,
 	},
+	/*LW070AT9309 TTL7.0,800X480  2010_03_19 */
+	[4] = {
+		.name           = "INNOLUX_AT050TN22",
+		.xres           = 800,
+		.yres           = 480,
+		.pixclock       = KHZ2PICOS(18000),
+		.left_margin    = 134,
+		.right_margin   = 16,
+		.hsync_len      = 10,
+		.upper_margin   = 11,
+		.lower_margin   = 32,
+		.vsync_len      = 2,
+		.sync           = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+		.flag           = 0,
+	},
 };
 
 static bool da8xx_fb_is_raster_enabled(void)
