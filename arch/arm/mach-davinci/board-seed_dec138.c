@@ -60,9 +60,78 @@
 
 #define DA850_MII_MDIO_CLKEN_PIN	GPIO_TO_PIN(2, 6)
 
-static struct spi_board_info da850evm_spi_info[] = {
 
+static struct davinci_spi_config da850evm_spidev_cfg = {
+	.io_type	= SPI_IO_TYPE_DMA,
+	.c2tdelay	= 8,
+	.t2cdelay	= 8,
 };
+
+#ifdef CONFIG_TOUCHSCREEN_ADS7846
+#include <linux/spi/ads7846.h>
+#define ADS7846_GPIO_IRQ GPIO_TO_PIN(6, 3) /* 开发板触摸屏使用的外部中断 */
+static struct ads7846_platform_data ads_info __maybe_unused = {
+	.model				= 7846,
+	.vref_delay_usecs	= 1,
+	.keep_vref_on		= 0,
+	.settle_delay_usecs	= 20,
+//	.x_plate_ohms		= 800,
+	.pressure_min		= 0,
+	.pressure_max		= 2048,
+	.debounce_rep		= 3,
+	.debounce_max		= 10,
+	.debounce_tol		= 50,
+//	.get_pendown_state	= ads7846_pendown_state,
+	.get_pendown_state	= NULL,
+	.gpio_pendown		= ADS7846_GPIO_IRQ,
+	.filter_init		= NULL,
+	.filter 			= NULL,
+	.filter_cleanup 	= NULL,
+};
+
+static struct davinci_spi_config da850evm_ads7846_cfg = {
+	.io_type	= SPI_IO_TYPE_DMA,
+};
+#endif
+
+#ifdef CONFIG_SPI_DAVINCI
+static const short da850evm_spi1_pins[] = {
+	DA850_SPI1_CS_0, DA850_SPI1_CS_1, DA850_SPI1_CS_2,
+	DA850_SPI1_CLK, DA850_SPI1_SOMI, DA850_SPI1_SIMO,
+	-1
+};
+
+static struct spi_board_info da850evm_spi_info[] = {
+	{
+		.modalias	= "spidev",
+		.controller_data	= &da850evm_spidev_cfg,
+		.bus_num	= 1,
+		.chip_select	= 0,
+		.max_speed_hz	= 580000,
+		.mode		= SPI_MODE_1,
+	},
+	{
+		.modalias	= "spidev",
+		.controller_data	= &da850evm_spidev_cfg,
+		.bus_num	= 1,
+		.chip_select	= 1,
+		.max_speed_hz	= 580000,
+		.mode		= SPI_MODE_1,
+	},
+#ifdef CONFIG_TOUCHSCREEN_ADS7846
+	{
+		.modalias = "ads7846",
+		.platform_data = &ads_info,
+		.controller_data	= &da850evm_ads7846_cfg,
+		.bus_num 		= 1,
+		.chip_select 	= 2,
+		.max_speed_hz 	= 2500000,
+		.mode 			= SPI_MODE_1,
+//		.irq			= ADS7846_GPIO_IRQ,
+	},
+#endif
+};
+#endif
 
 static struct davinci_pm_config da850_pm_pdata = {
 	.sleepcount = 128,
@@ -979,6 +1048,18 @@ static __init void da850_evm_init(void)
 
 	da850_vpif_init();
 
+#ifdef CONFIG_TOUCHSCREEN_ADS7846
+	ret = davinci_cfg_reg(DA850_GPIO6_3);
+	if (ret)
+		pr_warning("da850_evm_init: TS mux failed:" " %d\n", ret);
+
+	da850evm_spi_info[2].irq = gpio_to_irq(ADS7846_GPIO_IRQ);
+#endif
+#ifdef CONFIG_SPI_DAVINCI
+	ret = davinci_cfg_reg_list(da850evm_spi1_pins);
+	if (ret)
+		pr_warning("da850_evm_init : SPI1 mux failed :" "%d\n", ret);
+
 	ret = spi_register_board_info(da850evm_spi_info,
 				      ARRAY_SIZE(da850evm_spi_info));
 	if (ret)
@@ -988,6 +1069,7 @@ static __init void da850_evm_init(void)
 	ret = da8xx_register_spi_bus(1, ARRAY_SIZE(da850evm_spi_info));
 	if (ret)
 		pr_warn("%s: SPI 1 registration failed: %d\n", __func__, ret);
+#endif
 
 	ret = da850_register_sata(DA850EVM_SATA_REFCLKPN_RATE);
 	if (ret)

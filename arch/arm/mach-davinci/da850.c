@@ -648,6 +648,7 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, GPIO3_13,	7,	8,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_0,		10,	28,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_1,		10,	24,	15,	8,	false)
+	MUX_CFG(DA850, GPIO6_3,		19,	12,	15,	8,	false)
 	MUX_CFG(DA850, GPIO6_9,		13,	24,	15,	8,	false)
 	MUX_CFG(DA850, GPIO6_10,	13,	20,	15,	8,	false)
 	MUX_CFG(DA850, GPIO6_13,	13,	8,	15,	8,	false)
@@ -692,6 +693,14 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, VPIF_DOUT15,	17,	8,	15,	1,	false)
 	MUX_CFG(DA850, VPIF_CLKO2,	19,	12,	15,	1,	false)
 	MUX_CFG(DA850, VPIF_CLKO3,	19,	20,	15,	1,	false)
+	/* SPI1 function */
+	MUX_CFG(DA850, SPI1_CS_0,	5,	4,	15,	1,	false)
+	MUX_CFG(DA850, SPI1_CS_1,	5,	0,	15,	1,	false)
+	MUX_CFG(DA850, SPI1_CS_2,	4,	28,	15,	1,	false)
+	MUX_CFG(DA850, SPI1_CS_3,	4,	24,	15,	1,	false)
+	MUX_CFG(DA850, SPI1_CLK,	5,	8,	15,	1,	false)
+	MUX_CFG(DA850, SPI1_SOMI,	5,	16,	15,	1,	false)
+	MUX_CFG(DA850, SPI1_SIMO,	5,	20,	15,	1,	false)
 #endif
 };
 
