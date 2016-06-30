@@ -49,8 +49,9 @@
 #include <media/adv7343.h>
 
 #define DA850_EVM_PHY_ID		"davinci_mdio-0:00"
-#define DA850_LCD_PWR_PIN		GPIO_TO_PIN(2, 8)
-#define DA850_LCD_BL_PIN		GPIO_TO_PIN(2, 15)
+#define DA850_LCD_PWR_ENR		GPIO_TO_PIN(6, 6)
+#define DA850_LCD_PWR_EN		GPIO_TO_PIN(8, 6)
+#define DA850_LCD_LIGHT_EN		GPIO_TO_PIN(2, 15)
 
 #define DA850_MMCSD_CD_PIN		GPIO_TO_PIN(4, 0)
 #define DA850_MMCSD_WP_PIN		GPIO_TO_PIN(4, 1)
@@ -69,7 +70,7 @@ static struct davinci_spi_config da850evm_spidev_cfg = {
 
 #ifdef CONFIG_TOUCHSCREEN_ADS7846
 #include <linux/spi/ads7846.h>
-#define ADS7846_GPIO_IRQ GPIO_TO_PIN(6, 3) /* 开发板触摸屏使用的外部中断 */
+#define ADS7846_GPIO_IRQ GPIO_TO_PIN(6, 9) /* 开发板触摸屏使用的外部中断 */
 static struct ads7846_platform_data ads_info __maybe_unused = {
 	.model				= 7846,
 	.vref_delay_usecs	= 1,
@@ -95,31 +96,32 @@ static struct davinci_spi_config da850evm_ads7846_cfg = {
 #endif
 
 #ifdef CONFIG_SPI_DAVINCI
+static const short da850evm_spi0_pins[] = {
+	DA850_SPI0_CS_2,
+	DA850_SPI0_CLK, DA850_SPI0_SOMI, DA850_SPI0_SIMO,
+	-1
+};
+
+static struct spi_board_info da850evm_spi0_info[] = {
+	[2] = {
+		.modalias	= "spidev",
+		.controller_data	= &da850evm_spidev_cfg,
+		.bus_num	= 0,
+		.chip_select	= 2,
+		.max_speed_hz	= 580000,
+		.mode		= SPI_MODE_1,
+	},
+};
+
 static const short da850evm_spi1_pins[] = {
-	DA850_SPI1_CS_0, DA850_SPI1_CS_1, DA850_SPI1_CS_2,
+	DA850_SPI1_CS_2,
 	DA850_SPI1_CLK, DA850_SPI1_SOMI, DA850_SPI1_SIMO,
 	-1
 };
 
-static struct spi_board_info da850evm_spi_info[] = {
-	{
-		.modalias	= "spidev",
-		.controller_data	= &da850evm_spidev_cfg,
-		.bus_num	= 1,
-		.chip_select	= 0,
-		.max_speed_hz	= 580000,
-		.mode		= SPI_MODE_1,
-	},
-	{
-		.modalias	= "spidev",
-		.controller_data	= &da850evm_spidev_cfg,
-		.bus_num	= 1,
-		.chip_select	= 1,
-		.max_speed_hz	= 580000,
-		.mode		= SPI_MODE_1,
-	},
+static struct spi_board_info da850evm_spi1_info[] = {
 #ifdef CONFIG_TOUCHSCREEN_ADS7846
-	{
+	[2] = {
 		.modalias = "ads7846",
 		.platform_data = &ads_info,
 		.controller_data	= &da850evm_ads7846_cfg,
@@ -301,28 +303,37 @@ static const short da850_evm_mmcsd0_pins[] __initconst = {
 static void da850_panel_power_ctrl(int val)
 {
 	/* lcd backlight */
-	gpio_set_value(DA850_LCD_BL_PIN, val);
+	gpio_set_value(DA850_LCD_LIGHT_EN, val);
 
 	/* lcd power */
-	gpio_set_value(DA850_LCD_PWR_PIN, val);
+	gpio_set_value(DA850_LCD_PWR_ENR, val);
+	gpio_set_value(DA850_LCD_PWR_EN, val);
 }
 
 static int da850_lcd_hw_init(void)
 {
 	int status;
 
-	status = gpio_request(DA850_LCD_BL_PIN, "lcd bl\n");
+	status = gpio_request(DA850_LCD_LIGHT_EN, "lcd bl\n");
 	if (status < 0)
 		return status;
 
-	status = gpio_request(DA850_LCD_PWR_PIN, "lcd pwr\n");
+	status = gpio_request(DA850_LCD_PWR_ENR, "lcd pwr enr\n");
 	if (status < 0) {
-		gpio_free(DA850_LCD_BL_PIN);
+		gpio_free(DA850_LCD_LIGHT_EN);
 		return status;
 	}
 
-	gpio_direction_output(DA850_LCD_BL_PIN, 0);
-	gpio_direction_output(DA850_LCD_PWR_PIN, 0);
+	status = gpio_request(DA850_LCD_PWR_EN, "lcd pwr en\n");
+	if (status < 0) {
+		gpio_free(DA850_LCD_PWR_ENR);
+		gpio_free(DA850_LCD_LIGHT_EN);
+		return status;
+	}
+
+	gpio_direction_output(DA850_LCD_LIGHT_EN, 0);
+	gpio_direction_output(DA850_LCD_PWR_ENR, 0);
+	gpio_direction_output(DA850_LCD_PWR_EN, 0);
 
 	/* Switch off panel power and backlight */
 	da850_panel_power_ctrl(0);
@@ -344,7 +355,7 @@ static struct regulator_consumer_supply fixed_supplies[] = {
 };
 
 static const short da850_evm_lcdc_pins[] = {
-	DA850_GPIO2_8, DA850_GPIO2_15,
+	DA850_GPIO2_15, DA850_GPIO6_6, DA850_GPIO8_6,
 	-1
 };
 
@@ -921,6 +932,86 @@ usb11_setup_oc_fail:
 }
 #endif
 
+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+#include <linux/leds.h>
+/* assign the tl som board LED-GPIOs*/
+static const short da850_evm_user_led_pins[] = {
+	DA850_GPIO4_4, DA850_GPIO4_5, DA850_GPIO4_6, DA850_GPIO4_7,
+	DA850_GPIO5_14, DA850_GPIO5_15,
+	-1
+};
+
+static struct gpio_led da850_evm_leds[] = {
+	{
+		.active_low = 0,
+		.gpio = GPIO_TO_PIN(4, 4),
+		.name = "led2",
+		.default_trigger = "heartbeat",
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},{
+		.active_low = 0,
+		.gpio = GPIO_TO_PIN(4, 5),
+		.name = "led4",
+		.default_trigger = NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},{
+		.active_low = 0,
+		.gpio = GPIO_TO_PIN(4, 6),
+		.name = "led6",
+		.default_trigger = NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_ON,
+	},{
+		.active_low = 0,
+		.gpio = GPIO_TO_PIN(4, 7),
+		.name = "led7",
+		.default_trigger = NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},{
+		.active_low = 0,
+		.gpio = GPIO_TO_PIN(5, 14),
+		.name = "led8",
+		.default_trigger = NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},{
+		.active_low = 0,
+		.gpio = GPIO_TO_PIN(5, 15),
+		.name = "led9",
+		.default_trigger = NULL,
+		.default_state	= LEDS_GPIO_DEFSTATE_OFF,
+	},
+};
+
+static struct gpio_led_platform_data da850_evm_leds_pdata = {
+	.leds = da850_evm_leds,
+	.num_leds = ARRAY_SIZE(da850_evm_leds),
+};
+
+static struct platform_device da850_evm_leds_device = {
+	.name		= "leds-gpio",
+	.id		= -1,
+	.dev = {
+		.platform_data = &da850_evm_leds_pdata
+	}
+};
+
+static void da850_evm_leds_init(void)
+{
+	int ret;
+
+	ret = davinci_cfg_reg_list(da850_evm_user_led_pins);
+	if (ret)
+		pr_warning("da850_evm_leds_init : User LED mux failed :"
+				"%d\n", ret);
+
+	ret = platform_device_register(&da850_evm_leds_device);
+	if (ret) {
+		pr_warning("Could not register som GPIO expander LEDS");
+	}
+}
+#endif
+
+
+
 #define DA850EVM_SATA_REFCLKPN_RATE	(100 * 1000 * 1000)
 
 static __init void da850_evm_init(void)
@@ -1041,24 +1132,39 @@ static __init void da850_evm_init(void)
 	da850_vpif_init();
 
 #ifdef CONFIG_TOUCHSCREEN_ADS7846
-	ret = davinci_cfg_reg(DA850_GPIO6_3);
+	ret = davinci_cfg_reg(DA850_GPIO6_9);
 	if (ret)
 		pr_warning("da850_evm_init: TS mux failed:" " %d\n", ret);
 
-	da850evm_spi_info[2].irq = gpio_to_irq(ADS7846_GPIO_IRQ);
+	da850evm_spi1_info[2].irq = gpio_to_irq(ADS7846_GPIO_IRQ);
 #endif
 #ifdef CONFIG_SPI_DAVINCI
-	ret = davinci_cfg_reg_list(da850evm_spi1_pins);
+	/* SPI0 */
+	ret = davinci_cfg_reg_list(da850evm_spi0_pins);
 	if (ret)
-		pr_warning("da850_evm_init : SPI1 mux failed :" "%d\n", ret);
+		pr_warning("da850_evm_init : SPI0 mux failed :" "%d\n", ret);
 
-	ret = spi_register_board_info(da850evm_spi_info,
-				      ARRAY_SIZE(da850evm_spi_info));
+	ret = spi_register_board_info(da850evm_spi0_info,
+				      ARRAY_SIZE(da850evm_spi0_info));
 	if (ret)
 		pr_warn("%s: spi info registration failed: %d\n", __func__,
 			ret);
 
-	ret = da8xx_register_spi_bus(1, ARRAY_SIZE(da850evm_spi_info));
+	ret = da8xx_register_spi_bus(0, ARRAY_SIZE(da850evm_spi0_info));
+	if (ret)
+		pr_warn("%s: SPI 0 registration failed: %d\n", __func__, ret);
+	/* SPI1 */
+	ret = davinci_cfg_reg_list(da850evm_spi1_pins);
+	if (ret)
+		pr_warning("da850_evm_init : SPI1 mux failed :" "%d\n", ret);
+
+	ret = spi_register_board_info(da850evm_spi1_info,
+				      ARRAY_SIZE(da850evm_spi1_info));
+	if (ret)
+		pr_warn("%s: spi info registration failed: %d\n", __func__,
+			ret);
+
+	ret = da8xx_register_spi_bus(1, ARRAY_SIZE(da850evm_spi1_info));
 	if (ret)
 		pr_warn("%s: SPI 1 registration failed: %d\n", __func__, ret);
 #endif
@@ -1069,6 +1175,9 @@ static __init void da850_evm_init(void)
 
 #if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_MUSB_DA8XX)
 	da850_evm_usb_init();
+#endif
+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+	da850_evm_leds_init();
 #endif
 
 	ret = da8xx_register_rproc();
