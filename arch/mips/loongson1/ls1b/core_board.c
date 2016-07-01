@@ -210,8 +210,8 @@ static struct pwm_lookup pwm_lookup[] = {
 	/* LEDB -> PMU_STAT */
 	PWM_LOOKUP("ls1x-pwm.2", 0, "leds_pwm", "ls1x_pwm_led2",
 			7812500, PWM_POLARITY_NORMAL),
-	PWM_LOOKUP("ls1x-pwm.3", 0, "leds_pwm", "ls1x_pwm_led3",
-			7812500, PWM_POLARITY_NORMAL),
+/*	PWM_LOOKUP("ls1x-pwm.3", 0, "leds_pwm", "ls1x_pwm_led3",
+			7812500, PWM_POLARITY_NORMAL),*/
 };
 
 static struct led_pwm ls1x_pwm_leds[] = {
@@ -220,11 +220,11 @@ static struct led_pwm ls1x_pwm_leds[] = {
 		.max_brightness	= 255,
 		.pwm_period_ns	= 7812500,
 	},
-	{
+/*	{
 		.name		= "ls1x_pwm_led3",
 		.max_brightness	= 255,
 		.pwm_period_ns	= 7812500,
-	},
+	},*/
 };
 
 static struct led_pwm_platform_data ls1x_pwm_data = {
@@ -240,6 +240,30 @@ static struct platform_device ls1x_leds_pwm = {
 	},
 };
 #endif //#ifdef CONFIG_LEDS_PWM
+
+#if defined(CONFIG_BACKLIGHT_PWM)
+#include <linux/pwm_backlight.h>
+static struct pwm_lookup pwm_backlight_lookup[] = {
+	PWM_LOOKUP("ls1x-pwm.3", 0, "pwm-backlight", NULL,
+			7812500, PWM_POLARITY_NORMAL),
+};
+
+static struct platform_pwm_backlight_data ls1x_backlight_data = {
+	.pwm_id		= -1,	/* Superseded by pwm_lookup */
+	.max_brightness	= 255,
+	.dft_brightness	= 100,
+	.pwm_period_ns	= 7812500,
+};
+
+static struct platform_device ls1x_pwm_backlight = {
+	.name = "pwm-backlight",
+	.id   = -1,
+	.dev = {
+//		.parent	= &ls1x_pwm3_pdev.dev,
+		.platform_data = &ls1x_backlight_data,
+	},
+};
+#endif
 
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #include <linux/can/platform/sja1000.h>
@@ -360,6 +384,9 @@ static struct platform_device *ls1b_platform_devices[] __initdata = {
 #ifdef CONFIG_LEDS_PWM
 	&ls1x_leds_pwm,
 #endif
+#if defined(CONFIG_BACKLIGHT_PWM)
+	&ls1x_pwm_backlight,
+#endif
 #ifdef CONFIG_CAN_SJA1000_PLATFORM
 #ifdef CONFIG_LS1X_CAN0
 	&ls1x_sja1000_0,
@@ -418,6 +445,9 @@ static int __init ls1b_platform_init(void)
 #endif
 #ifdef CONFIG_LEDS_PWM
 	pwm_add_table(pwm_lookup, ARRAY_SIZE(pwm_lookup));
+#endif
+#if defined(CONFIG_BACKLIGHT_PWM)
+	pwm_add_table(pwm_backlight_lookup, ARRAY_SIZE(pwm_backlight_lookup));
 #endif
 
 	err = platform_add_devices(ls1b_platform_devices,
