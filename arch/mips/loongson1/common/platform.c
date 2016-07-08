@@ -24,8 +24,7 @@
 		.mapbase	= LS1X_UART ## _id ## _BASE,	\
 		.irq		= LS1X_UART ## _id ## _IRQ,	\
 		.iotype		= UPIO_MEM,			\
-		.flags		= UPF_IOREMAP | UPF_FIXED_TYPE, \
-		.type		= PORT_16550A,			\
+		.flags		= UPF_IOREMAP | UPF_LOW_LATENCY | UPF_BOOT_AUTOCONF | UPF_SKIP_TEST, \
 	}
 
 #define LS1X_UART_SHARE(_id, _irq)						\
@@ -33,8 +32,7 @@
 		.mapbase	= LS1X_UART ## _id ## _BASE,	\
 		.irq		= LS1X_UART ## _irq ## _IRQ,	\
 		.iotype		= UPIO_MEM,			\
-		.flags		= UPF_IOREMAP | UPF_FIXED_TYPE | UPF_SHARE_IRQ,	\
-		.type		= PORT_16550A,			\
+		.flags		= UPF_IOREMAP | UPF_LOW_LATENCY | UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_SHARE_IRQ,	\
 	}
 
 static struct plat_serial8250_port ls1x_serial8250_port[] = {
