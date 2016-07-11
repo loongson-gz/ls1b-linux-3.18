@@ -90,4 +90,11 @@ endif
 
 endchoice
 
+#定义外部晶振频率
+config DEFAULT_OSCCLK
+	int "DEFAULT_OSCCLK"
+	default "33000000"
+	help
+	  Default osc clock rate
+
 endif # MACH_LOONGSON1

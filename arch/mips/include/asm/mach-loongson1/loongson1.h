@@ -16,17 +16,11 @@
 
 #define DEFAULT_MEMSIZE			256	/* If no memsize provided */
 
-#if defined(CONFIG_LOONGSON1_LS1A)
-#define OSC			33000000 /* Hz */
-#define DIV_APB		2
-#elif defined(CONFIG_LS1B_DEV_BOARD)
-#define OSC			33000000 /* Hz */
-#define DIV_APB		2
-#elif defined(CONFIG_LS1B_CORE_BOARD)
-#define OSC			25000000 /* Hz */
+#define OSC			(CONFIG_DEFAULT_OSCCLK) /* Hz */
+
+#if defined(CONFIG_LOONGSON1_LS1A) || defined(CONFIG_LOONGSON1_LS1B)
 #define DIV_APB		2
 #elif defined(CONFIG_LOONGSON1_LS1C)
-#define OSC			24000000 /* Hz */
 #define DIV_APB		1
 #endif
 
