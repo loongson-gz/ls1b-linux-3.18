@@ -164,10 +164,19 @@ static struct spi_board_info ls1x_spi0_devices[] = {
 
 #ifdef CONFIG_I2C_LS1X
 #include <linux/i2c-ls1x.h>
+#include <linux/i2c.h>
+static struct i2c_board_info ls1x_i2c0_board_info[] = {
+#ifdef CONFIG_AM2315
+	{
+		I2C_BOARD_INFO("am2315", 0x5c),
+	},
+#endif
+};
+
 struct ls1x_i2c_platform_data ls1x_i2c0_data = {
 	.bus_clock_hz = 100000, /* i2c bus clock in Hz */
-//	.devices	= ls1x_i2c0_board_info, /* optional table of devices */
-//	.num_devices	= ARRAY_SIZE(ls1x_i2c0_board_info), /* table size */
+	.devices	= ls1x_i2c0_board_info, /* optional table of devices */
+	.num_devices	= ARRAY_SIZE(ls1x_i2c0_board_info), /* table size */
 };
 
 struct ls1x_i2c_platform_data ls1x_i2c1_data = {
