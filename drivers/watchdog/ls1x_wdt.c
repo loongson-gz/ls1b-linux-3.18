@@ -36,14 +36,16 @@ struct wdt_ls1x {
 	void __iomem		*regs;
 	unsigned int		timeout;
 	struct	miscdevice	miscdev;
-	
+
 	spinlock_t		io_lock;
-};	
+};
 
 static struct wdt_ls1x	*wdt;
 static struct clk		*wdt_clock;
 static char	expect_close;
 static int nowayout = WATCHDOG_NOWAYOUT;
+
+static unsigned long ls1xwdt_busy;
 
 static inline void ls1x_wdt_stop(void)
 {
@@ -83,17 +85,20 @@ static int ls1x_wdt_release(struct inode *inode, struct file *file)
 	}
 
 	expect_close = 0;
-
+	clear_bit(0, &ls1xwdt_busy);
 	return 0;
 }
 
 static int ls1x_wdt_open(struct inode *inode, struct file *file)
 {
+	if (test_and_set_bit(0, &ls1xwdt_busy))
+		return -EBUSY;
+
 	if (nowayout)
 		__module_get(THIS_MODULE);
 
 	expect_close = 0;
-	
+
 	ls1x_ping();
 
 	return nonseekable_open(inode, file);
@@ -107,7 +112,7 @@ static ssize_t ls1x_wdt_write(struct file *file, const char __user *buf, size_t 
 	if (count) {
 		if (!nowayout) {
 			size_t i;
-			
+
 			/* In case it was set long ago */
 			expect_close = 0;
 			for (i = 0; i != count; i++) {
@@ -123,12 +128,12 @@ static ssize_t ls1x_wdt_write(struct file *file, const char __user *buf, size_t 
 	return count;
 }
 
-static int ls1x_wdt_settimeout(int time) 
+static int ls1x_wdt_settimeout(int time)
 {
 	unsigned long freq = clk_get_rate(wdt_clock);
 	if ((time < TIMEOUT_MIN) || (time > TIMEOUT_MAX))
 		return -EINVAL;
-	
+
 	wdt->timeout = time * freq;
 
 	return 0;
@@ -185,7 +190,7 @@ static long ls1x_wdt_ioctl(struct file *file, unsigned int cmd, unsigned long ar
 		default:
 			return -ENOTTY;
 	}
-	
+
 	return ret;
 }
 
@@ -208,7 +213,7 @@ static int ls1x_wdt_probe(struct platform_device *pdev)
 		dev_dbg(&pdev->dev, "missing mmio resource\n");
 		return -ENXIO;
 	}
-	
+
 	wdt = devm_kzalloc(&pdev->dev, sizeof(struct wdt_ls1x), GFP_KERNEL);
 	if (!wdt)
 		return -ENOMEM;
@@ -235,7 +240,7 @@ static int ls1x_wdt_probe(struct platform_device *pdev)
 
 	if (ls1x_wdt_settimeout(timeout)) {
 		ls1x_wdt_settimeout(TIMEOUT_DEFAULT);
-		dev_dbg(&pdev->dev, 
+		dev_dbg(&pdev->dev,
 			"default timeout invalid set to %d sec.\n",
 		TIMEOUT_DEFAULT);
 	}
@@ -245,9 +250,9 @@ static int ls1x_wdt_probe(struct platform_device *pdev)
 		dev_dbg(&pdev->dev, "failed to register wdt miscdev\n");
 		goto err_free;
 	}
-	
+
 	platform_set_drvdata(pdev, wdt);
-	
+
 	dev_info(&pdev->dev,
 		"ls1x WDT at 0x%p, timeout %d sec (no wayout= %d)\n", wdt->regs, wdt->timeout, nowayout);
 
@@ -267,7 +272,7 @@ static int ls1x_wdt_remove(struct platform_device *pdev)
 		misc_deregister(&wdt->miscdev);
 		wdt = NULL;
 	}
-	
+
 	return 0;
 }
 
@@ -280,11 +285,14 @@ static void ls1x_wdt_shutdown(struct platform_device *pdev)
 
 static int ls1x_wdt_suspend(struct platform_device *dev, pm_message_t state)
 {
+	ls1x_wdt_stop();
 	return 0;
 }
 
 static int ls1x_wdt_resume(struct platform_device *dev)
 {
+	if (ls1xwdt_busy)
+		ls1x_ping();
 	return 0;
 }
 

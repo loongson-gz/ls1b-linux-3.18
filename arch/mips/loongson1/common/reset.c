@@ -16,8 +16,14 @@
 
 static void __iomem *wdt_base;
 
+void __weak gpio_power_off(void)
+{
+}
+
 static void ls1x_halt(void)
 {
+	gpio_power_off();
+
 	while (1) {
 		if (cpu_wait)
 			cpu_wait();

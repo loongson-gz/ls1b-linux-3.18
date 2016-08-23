@@ -218,14 +218,14 @@ static void set_uart_clock_divider(void)
 			+ ((pll >> 8) & 0x3ff) * OSC / 1024 / 2;
 	rate = rate / (ctrl >> DIV_DDR_SHIFT);
 	divisor = rate / 2 / (16*115200);
-	
+
 	for (i=0; i<12; i++) {
 		x = readb(UART_PORT(i, UART_LCR));
 		writeb(x | UART_LCR_DLAB, UART_PORT(i, UART_LCR));
-	
+
 		writeb(divisor & 0xff, UART_PORT(i, UART_DLL));
 		writeb((divisor>>8) & 0xff, UART_PORT(i, UART_DLM));
-	
+
 		writeb(x & ~UART_LCR_DLAB, UART_PORT(i, UART_LCR));
 	}
 }
@@ -237,7 +237,7 @@ static void set_clock_divider_forls1bvga(struct ls1xfb_info *fbi,
 	extern struct ls1b_vga ls1b_vga_modes[];
 
 	for (input_vga=ls1b_vga_modes; input_vga->ls1b_pll_freq !=0; ++input_vga) {
-//		if((input_vga->xres == m->xres) && (input_vga->yres == m->yres) && 
+//		if((input_vga->xres == m->xres) && (input_vga->yres == m->yres) &&
 //			(input_vga->refresh == m->refresh)) {
 		if ((input_vga->xres == m->xres) && (input_vga->yres == m->yres)) {
 			break;
@@ -446,9 +446,9 @@ static void set_dumb_screen_dimensions(struct fb_info *info)
 	x = v->xres + v->right_margin + v->hsync_len + v->left_margin;
 	y = v->yres + v->lower_margin + v->vsync_len + v->upper_margin;
 
-	writel_reg((readl(fbi->reg_base + LS1X_FB_HDISPLAY) & ~LS1X_FB_HDISPLAY_TOTAL) | (x << 16), 
+	writel_reg((readl(fbi->reg_base + LS1X_FB_HDISPLAY) & ~LS1X_FB_HDISPLAY_TOTAL) | (x << 16),
 		fbi->reg_base + LS1X_FB_HDISPLAY);
-	writel_reg((readl(fbi->reg_base + LS1X_FB_VDISPLAY) & ~LS1X_FB_HDISPLAY_TOTAL) | (y << 16), 
+	writel_reg((readl(fbi->reg_base + LS1X_FB_VDISPLAY) & ~LS1X_FB_HDISPLAY_TOTAL) | (y << 16),
 		fbi->reg_base + LS1X_FB_VDISPLAY);
 }
 
@@ -485,7 +485,7 @@ static int ls1xfb_set_par(struct fb_info *info)
 	if (unlikely(vga_mode)) {
 		set_clock_divider_forls1bvga(fbi, &mode);
 	}
-	else 
+	else
 #endif
 	{
 		set_clock_divider(fbi, &mode);
@@ -506,12 +506,12 @@ static int ls1xfb_set_par(struct fb_info *info)
 		writel_reg(0x00000000, fbi->reg_base + LS1X_FB_HSYNC);
 		writel_reg(0x00000000, fbi->reg_base + LS1X_FB_VSYNC);
 	} else {
-		writel_reg((readl(fbi->reg_base + LS1X_FB_HSYNC) & 0xc0000000) | 0x40000000 | 
-				((var->right_margin + var->xres + var->hsync_len) << 16) | 
+		writel_reg((readl(fbi->reg_base + LS1X_FB_HSYNC) & 0xc0000000) | 0x40000000 |
+				((var->right_margin + var->xres + var->hsync_len) << 16) |
 				(var->right_margin + var->xres),
 				fbi->reg_base + LS1X_FB_HSYNC);
-		writel_reg((readl(fbi->reg_base + LS1X_FB_VSYNC) & 0xc0000000) | 0x40000000 | 
-				((var->lower_margin + var->yres + var->vsync_len) << 16) | 
+		writel_reg((readl(fbi->reg_base + LS1X_FB_VSYNC) & 0xc0000000) | 0x40000000 |
+				((var->lower_margin + var->yres + var->vsync_len) << 16) |
 				(var->lower_margin + var->yres),
 				fbi->reg_base + LS1X_FB_VSYNC);
 	}
@@ -643,7 +643,7 @@ static int ls1xfb_init_mode(struct fb_info *info,
 			fb_videomode_to_var(&info->var, m);
 			#endif
 	}
-	pr_info("%s:%dx%d-%d@%d\n", m->name, 
+	pr_info("%s:%dx%d-%d@%d\n", m->name,
 		var->xres, var->yres, var->bits_per_pixel, refresh);
 
 	/* Init settings. */
@@ -880,13 +880,45 @@ static int ls1xfb_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 
 /* suspend and resume support for the lcd controller */
-static int ls1xfb_suspend(struct platform_device *dev, pm_message_t state)
+static int ls1xfb_suspend(struct platform_device *pdev, pm_message_t state)
 {
+	struct ls1xfb_info *fbi = platform_get_drvdata(pdev);
+	u32 x;
+
+	x = readl(fbi->reg_base + LS1X_FB_CONF);
+	writel_reg(x & ~LS1X_FB_CONF_OUT_EN, fbi->reg_base + LS1X_FB_CONF);
+
+	x = readl(fbi->reg_base + LS1X_FB_PANEL_CONF);
+	x &= ~(LS1X_FB_PANEL_CONF_CLK | LS1X_FB_PANEL_CONF_DE);
+	writel_reg(x, fbi->reg_base + LS1X_FB_PANEL_CONF);
+
+	x = readl(fbi->reg_base + LS1X_FB_HSYNC);
+	writel_reg(x & ~LS1X_FB_HSYNC_PULSE, fbi->reg_base + LS1X_FB_HSYNC);
+
+	x = readl(fbi->reg_base + LS1X_FB_VSYNC);
+	writel_reg(x & ~LS1X_FB_VSYNC_PULSE, fbi->reg_base + LS1X_FB_VSYNC);
+
 	return 0;
 }
 
-static int ls1xfb_resume(struct platform_device *dev)
+static int ls1xfb_resume(struct platform_device *pdev)
 {
+	struct ls1xfb_info *fbi = platform_get_drvdata(pdev);
+	u32 x;
+
+	x = readl(fbi->reg_base + LS1X_FB_HSYNC);
+	writel_reg(x | LS1X_FB_HSYNC_PULSE, fbi->reg_base + LS1X_FB_HSYNC);
+
+	x = readl(fbi->reg_base + LS1X_FB_VSYNC);
+	writel_reg(x | LS1X_FB_VSYNC_PULSE, fbi->reg_base + LS1X_FB_VSYNC);
+
+	x = readl(fbi->reg_base + LS1X_FB_PANEL_CONF);
+	x |= (LS1X_FB_PANEL_CONF_CLK | LS1X_FB_PANEL_CONF_DE);
+	writel_reg(x, fbi->reg_base + LS1X_FB_PANEL_CONF);
+
+	x = readl(fbi->reg_base + LS1X_FB_CONF);
+	writel_reg(x | LS1X_FB_CONF_OUT_EN, fbi->reg_base + LS1X_FB_CONF);
+
 	return 0;
 }
 
@@ -952,7 +984,7 @@ static int __init ls1xfb_init(void)
 		if (p) {
 			default_refresh = simple_strtoul(p+1, NULL, 0);
 		}
-		if ((default_xres<=0 || default_xres>1920) || 
+		if ((default_xres<=0 || default_xres>1920) ||
 			(default_yres<=0 || default_yres>1080)) {
 			pr_info("Warning: Resolution is out of range."
 				"MAX resolution is 1920x1080@60Hz\n");

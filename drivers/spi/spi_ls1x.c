@@ -1,7 +1,7 @@
 /*
  * Loongson1 ls1x SPI master driver
  *
- * Copyright (C) 2013 Tang, Haifeng <tanghaifeng-gz@loongson.cn> 
+ * Copyright (C) 2013 Tang, Haifeng <tanghaifeng-gz@loongson.cn>
  * <pengren.mcu@qq.com>
  *
  * Based on spi_oc_tiny.c
@@ -79,7 +79,7 @@ static unsigned int ls1x_spi_div(struct spi_device *spi, unsigned int hz)
 
 	bit = fls(div) - 1;
 	switch(1 << bit) {
-		case 16: 
+		case 16:
 			div_tmp = 2;
 			if (div > (1<<bit)) {
 				div_tmp++;
@@ -104,7 +104,7 @@ static unsigned int ls1x_spi_div(struct spi_device *spi, unsigned int hz)
 			}
 			break;
 	}
-	dev_dbg(&spi->dev, "clk = %ld hz = %d div_tmp = %d bit = %d\n", 
+	dev_dbg(&spi->dev, "clk = %ld hz = %d div_tmp = %d bit = %d\n",
 			clk, hz, div_tmp, bit);
 
 	return div_tmp;
@@ -147,7 +147,7 @@ static void ls1x_spi_chipselect(struct spi_device *spi, int is_active)
 	u8 ret;
 	ret = readb(hw->base + REG_SOFTCS);
 	ret = (ret & 0xf0) | (0x01 << spi->chip_select);
-	
+
 	if (unlikely(spi->mode & SPI_CS_HIGH)) {
 		if (is_active) {
 			ret = ret | (0x10 << spi->chip_select);
@@ -531,6 +531,41 @@ static int ls1x_spi_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+
+static int ls1x_spi_suspend(struct device *dev)
+{
+	struct ls1x_spi *hw = dev_get_drvdata(dev);
+	int ret;
+
+	ret = spi_master_suspend(hw->bitbang.master);
+	if (ret)
+		return ret;
+
+	writeb(readb(hw->base + REG_SPCR) & 0x3f, hw->base + REG_SPCR);
+
+	clk_disable(hw->clk);
+	return 0;
+}
+
+static int ls1x_spi_resume(struct device *dev)
+{
+	struct ls1x_spi *hw = dev_get_drvdata(dev);
+
+	writeb(readb(hw->base + REG_SPCR) | 0xc0, hw->base + REG_SPCR);
+	return spi_master_resume(hw->bitbang.master);
+}
+
+static const struct dev_pm_ops ls1x_spi_pmops = {
+	.suspend	= ls1x_spi_suspend,
+	.resume		= ls1x_spi_resume,
+};
+
+#define LS1X_SPI_PMOPS &ls1x_spi_pmops
+#else
+#define LS1X_SPI_PMOPS NULL
+#endif /* CONFIG_PM */
+
 #ifdef CONFIG_OF
 static const struct of_device_id ls1x_spi_match[] = {
 	{ .compatible = "loongson1,ls1x-spi", },
@@ -547,7 +582,7 @@ static struct platform_driver ls1x_spi_driver = {
 	.driver = {
 		.name = DRV_NAME,
 		.owner = THIS_MODULE,
-		.pm = NULL,
+		.pm = LS1X_SPI_PMOPS,
 		.of_match_table = of_match_ptr(ls1x_spi_match),
 	},
 };

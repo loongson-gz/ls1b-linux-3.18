@@ -257,6 +257,10 @@ static int ls1x_i2c_remove(struct platform_device *pdev)
 {
 	struct ls1x_i2c *i2c = platform_get_drvdata(pdev);
 
+	/* disable i2c logic */
+	i2c_writeb(i2c, OCI2C_CONTROL, i2c_readb(i2c, OCI2C_CONTROL)
+		  & ~(OCI2C_CTRL_EN|OCI2C_CTRL_IEN));
+
 	/* remove adapter & data */
 	i2c_del_adapter(&i2c->adap);
 
@@ -266,11 +270,21 @@ static int ls1x_i2c_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 static int ls1x_i2c_suspend(struct platform_device *pdev, pm_message_t mesg)
 {
+	struct ls1x_i2c *i2c = platform_get_drvdata(pdev);
+	u8 ctrl = i2c_readb(i2c, OCI2C_CONTROL);
+
+	/* make sure the device is disabled */
+	i2c_writeb(i2c, OCI2C_CONTROL, ctrl & ~(OCI2C_CTRL_EN|OCI2C_CTRL_IEN));
+
 	return 0;
 }
 
 static int ls1x_i2c_resume(struct platform_device *pdev)
 {
+	struct ls1x_i2c *i2c = platform_get_drvdata(pdev);
+
+	ls1x_i2c_hwinit(i2c);
+
 	return 0;
 }
 
