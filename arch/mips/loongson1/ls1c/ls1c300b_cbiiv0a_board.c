@@ -387,8 +387,8 @@ struct ls1x_mci_pdata ls1x_sdio_parts = {
 	/* 轮询方式方式探测card的插拔 */
 	.get_ro = ls1x_sdio_get_ro,
 	.get_cd = ls1x_sdio_get_cd,
-	.caps = MMC_CAP_NEEDS_POLL,
-
+//	.caps = MMC_CAP_NEEDS_POLL,
+	.caps = MMC_CAP_NEEDS_POLL | MMC_CAP_SD_HIGHSPEED | MMC_CAP_MMC_HIGHSPEED,
 //	.max_clk = 17000000, /* 部分sd卡可能会出现读写错误，可以尝试降低提供给sd卡的频率 */
 };
 #endif //CONFIG_MMC_LS1X

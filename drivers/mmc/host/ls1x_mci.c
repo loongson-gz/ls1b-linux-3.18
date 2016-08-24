@@ -141,9 +141,6 @@ static void ls1x_mci_send_cmd(struct ls1x_mci_host *host,
 	if (cmd->flags & MMC_RSP_136)
 		ccon |= LS1X_SDICMDCON_LONGRSP;
 
-//	if (cmd->flags & MMC_RSP_CRC)
-//		ccon |= LS1X_SDICMDCON_CRCON;
-
 	writel(ccon, host->base + LS1X_SDICMDCON);
 }
 
@@ -248,7 +245,13 @@ static void ls1x_mci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 		mrq->cmd->error = -ENOMEDIUM;
 		mmc_request_done(mmc, mrq);
 		return;
-	} 
+	}
+
+	if (mrq->cmd->flags == MMC_RSP_NONE) {
+		printk(KERN_DEBUG "%s: cmd->flags == MMC_RSP_NONE\n", __func__);
+		mmc_request_done(mmc, mrq);
+		return;
+	}
 
 	if (mrq->data) {
 		ls1x_setup_data(host, mrq);
@@ -640,7 +643,7 @@ static int ls1x_mci_probe(struct platform_device *pdev)
 	mmc->f_min = host->clk_rate / 0x38;	/* 设置成256有问题？ */
 	if (host->pdata->max_clk)
 		mmc->f_max = host->pdata->max_clk;
-	else 
+	else
 		mmc->f_max = host->clk_rate / 1;
 
 	if (host->pdata->ocr_avail)
@@ -747,7 +750,7 @@ static struct platform_device_id ls1x_mci_driver_ids[] = {
 	{
 		.name	= "ls1x-sdi",
 		.driver_data	= 0,
-	}, 
+	},
 	{ }
 };
 
