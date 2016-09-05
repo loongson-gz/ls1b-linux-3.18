@@ -104,11 +104,11 @@ static const short da850evm_spi0_pins[] = {
 
 static struct spi_board_info da850evm_spi0_info[] = {
 	[2] = {
-		.modalias	= "spidev",
+		.modalias	= "dac8734",
 		.controller_data	= &da850evm_spidev_cfg,
 		.bus_num	= 0,
 		.chip_select	= 2,
-		.max_speed_hz	= 580000,
+		.max_speed_hz	= 2500000,
 		.mode		= SPI_MODE_1,
 	},
 };
@@ -232,7 +232,7 @@ static struct platform_device *da850_evm_devices[] = {
 static const short da850_evm_nand_pins[] = {
 	DA850_EMA_D_0, DA850_EMA_D_1, DA850_EMA_D_2, DA850_EMA_D_3,
 	DA850_EMA_D_4, DA850_EMA_D_5, DA850_EMA_D_6, DA850_EMA_D_7,
-	DA850_EMA_A_1, DA850_EMA_A_2, DA850_NEMA_CS_3, DA850_NEMA_CS_4,
+	DA850_EMA_A_1, DA850_EMA_A_2, DA850_NEMA_CS_3,
 	DA850_NEMA_WE, DA850_NEMA_OE,
 	-1
 };
@@ -1010,6 +1010,12 @@ static void da850_evm_leds_init(void)
 }
 #endif
 
+/* 用于板卡DIO控制 */
+static const short da850_evm_dio_pins[] = {
+	DA850_GPIO4_0, DA850_GPIO4_1, DA850_GPIO4_2, DA850_GPIO4_3,
+	-1
+};
+
 
 
 #define DA850EVM_SATA_REFCLKPN_RATE	(100 * 1000 * 1000)
@@ -1179,6 +1185,12 @@ static __init void da850_evm_init(void)
 #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
 	da850_evm_leds_init();
 #endif
+
+	/* 用于板卡DIO控制 */
+	ret = davinci_cfg_reg_list(da850_evm_dio_pins);
+	if (ret)
+		pr_warning("da850_evm_dio_init : User DIO mux failed :"
+				"%d\n", ret);
 
 	ret = da8xx_register_rproc();
 	if (ret)

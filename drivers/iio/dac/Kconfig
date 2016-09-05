@@ -142,6 +142,16 @@ config AD7303
 	  To compile this driver as module choose M here: the module will be called
 	  ad7303.
 
+config DAC8734
+	tristate "TI DAC8734 DAC driver (EXPERIMENTAL)"
+	depends on SPI_MASTER
+	help
+	  Say yes here to build support for TI DAC8734
+	  Digital to Analog Converter.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called dac8734.
+
 config MAX517
 	tristate "Maxim MAX517/518/519 DAC driver"
 	depends on I2C

@@ -648,6 +648,8 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, GPIO3_13,	7,	8,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_0,		10,	28,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_1,		10,	24,	15,	8,	false)
+	MUX_CFG(DA850, GPIO4_2,		10,	20,	15,	8,	false)
+	MUX_CFG(DA850, GPIO4_3,		10,	16,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_4,		10,	12,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_5,		10,	8,	15,	8,	false)
 	MUX_CFG(DA850, GPIO4_6,		10,	4,	15,	8,	false)
@@ -659,6 +661,7 @@ static const struct mux_config da850_pins[] = {
 	MUX_CFG(DA850, GPIO6_9,		13,	24,	15,	8,	false)
 	MUX_CFG(DA850, GPIO6_10,	13,	20,	15,	8,	false)
 	MUX_CFG(DA850, GPIO6_13,	13,	8,	15,	8,	false)
+	MUX_CFG(DA850, GPIO6_15,	13,	0,	15,	8,	false)
 	MUX_CFG(DA850, GPIO8_6,		3,	8,	15,	8,	false)
 	MUX_CFG(DA850, RTC_ALARM,	0,	28,	15,	2,	false)
 	/* VPIF Capture */
