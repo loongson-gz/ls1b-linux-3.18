@@ -24,7 +24,7 @@
 
 static int ls1x_pm_enter(suspend_state_t state)
 {
-	int regval;
+	int regval __maybe_unused;
 
 	/* cpu时钟频率设置为晶振频率（降频） */
 #if defined(CONFIG_LOONGSON1_LS1A)
