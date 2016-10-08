@@ -1016,6 +1016,60 @@ static const short da850_evm_dio_pins[] = {
 	-1
 };
 
+static const short da850_emifa_cpld_pins[] = {
+	DA850_EMA_D_0, DA850_EMA_D_1, DA850_EMA_D_2, DA850_EMA_D_3,
+	DA850_EMA_D_4, DA850_EMA_D_5, DA850_EMA_D_6, DA850_EMA_D_7,
+	DA850_EMA_D_8, DA850_EMA_D_9, DA850_EMA_D_10, DA850_EMA_D_11,
+	DA850_EMA_D_12, DA850_EMA_D_13, DA850_EMA_D_14, DA850_EMA_D_15,
+	DA850_EMA_A_0, DA850_EMA_A_1, DA850_EMA_A_2, DA850_EMA_A_3,
+	DA850_EMA_A_4, DA850_EMA_A_5, DA850_EMA_A_6, DA850_EMA_A_7,
+	DA850_EMA_A_8, DA850_EMA_A_9, DA850_EMA_A_10, DA850_EMA_A_11,
+	DA850_EMA_A_12, DA850_EMA_A_13, DA850_EMA_A_14, DA850_EMA_A_15,
+	DA850_EMA_BA_0, DA850_EMA_BA_1,
+	DA850_EMA_WAIT_1, DA850_EMA_CLK,
+	DA850_NEMA_A_RW, DA850_NEMA_WE, DA850_NEMA_OE, DA850_NEMA_CS_4,
+	-1
+};
+
+static inline void da850_emifa_cpld_setup(void)
+{
+	void __iomem *aemif_base;
+	unsigned set, val;
+	int ret = 0;
+
+/*	struct clk *refclk;
+
+	refclk = clk_get(NULL, "pll0_sysclk3");
+	if (IS_ERR(refclk)) {
+		pr_err("%s: failed to get reference clock.\n", __func__);
+		return PTR_ERR(refclk);
+	}
+	clk_set_rate(refclk, 133000000);
+	clk_put(refclk);*/
+
+	ret = davinci_cfg_reg(DA850_GPIO6_15);
+	if (ret)
+		pr_warning("da850_emifa_init: cpld mux failed:" " %d\n", ret);
+
+	ret = davinci_cfg_reg_list(da850_emifa_cpld_pins);
+	if (ret)
+		pr_warning("da850_emifa_init: cpld mux setup failed: %d\n", ret);
+
+	aemif_base = ioremap(DA8XX_AEMIF_CTL_BASE, SZ_32K);
+	/* Configure data bus width of CS4 to 16 bit */
+	writel((2 << 26) | (4 << 20) | (2 << 17) | (2 << 13) | (2 << 7) | (2 << 4) | 1, aemif_base + 0x18);
+
+	iounmap(aemif_base);
+
+/*	gpio_request(GPIO_TO_PIN(6, 15), "dac7744");
+	gpio_direction_output(GPIO_TO_PIN(6, 15), 1);
+	udelay(200);
+	gpio_set_value(GPIO_TO_PIN(6, 15), 0);
+	udelay(200);
+	gpio_set_value(GPIO_TO_PIN(6, 15), 1);
+	udelay(200);*/
+}
+
 
 
 #define DA850EVM_SATA_REFCLKPN_RATE	(100 * 1000 * 1000)
@@ -1196,6 +1250,8 @@ static __init void da850_evm_init(void)
 	if (ret)
 		pr_warn("%s: dsp/rproc registration failed: %d\n",
 			__func__, ret);
+
+	da850_emifa_cpld_setup();
 }
 
 #ifdef CONFIG_SERIAL_8250_CONSOLE
