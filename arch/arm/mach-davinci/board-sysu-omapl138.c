@@ -70,7 +70,7 @@ static struct davinci_spi_config da850evm_spidev_cfg = {
 
 #ifdef CONFIG_TOUCHSCREEN_ADS7846
 #include <linux/spi/ads7846.h>
-#define ADS7846_GPIO_IRQ GPIO_TO_PIN(6, 9) /* 开发板触摸屏使用的外部中断 */
+#define ADS7846_GPIO_IRQ GPIO_TO_PIN(6, 3) /* 开发板触摸屏使用的外部中断 */
 static struct ads7846_platform_data ads_info __maybe_unused = {
 	.model				= 7846,
 	.vref_delay_usecs	= 1,
@@ -1010,11 +1010,40 @@ static void da850_evm_leds_init(void)
 }
 #endif
 
+#ifdef CONFIG_SPI_GPIO
+#include <linux/spi/spi_gpio.h>
+static struct spi_board_info da850evm_spi_gpio_info[] = {
+	{
+		.modalias	= "spidev",
+		.bus_num	= 2,
+		.controller_data = (void *)GPIO_TO_PIN(4, 2),	/* gpio4_2 */
+		.chip_select	= 0,
+		.max_speed_hz	= 25000000,
+		.mode		= SPI_MODE_1,
+	},
+};
+
 /* 用于板卡DIO控制 */
-static const short da850_evm_dio_pins[] = {
+static const short da850_evm_spi_gpio_pins[] = {
 	DA850_GPIO4_0, DA850_GPIO4_1, DA850_GPIO4_2, DA850_GPIO4_3,
 	-1
 };
+
+static struct spi_gpio_platform_data da850_evm_spi_gpio_pdata = {
+	.sck		= GPIO_TO_PIN(4, 3),
+	.mosi		= GPIO_TO_PIN(4, 1),
+	.miso		= GPIO_TO_PIN(4, 0),
+	.num_chipselect	= 1,
+};
+
+static struct platform_device da850_evm_spi_gpio = {
+	.name		= "spi_gpio",
+	.id		= 2,
+	.dev		= {
+		.platform_data	= &da850_evm_spi_gpio_pdata,
+	},
+};
+#endif
 
 static const short da850_emifa_cpld_pins[] = {
 	DA850_EMA_D_0, DA850_EMA_D_1, DA850_EMA_D_2, DA850_EMA_D_3,
@@ -1028,6 +1057,8 @@ static const short da850_emifa_cpld_pins[] = {
 	DA850_EMA_BA_0, DA850_EMA_BA_1,
 	DA850_EMA_WAIT_1, DA850_EMA_CLK,
 	DA850_NEMA_A_RW, DA850_NEMA_WE, DA850_NEMA_OE, DA850_NEMA_CS_4,
+	/* 扩展输入输出 */
+	DA850_GPIO6_2, DA850_GPIO6_4,
 	-1
 };
 
@@ -1192,7 +1223,7 @@ static __init void da850_evm_init(void)
 	da850_vpif_init();
 
 #ifdef CONFIG_TOUCHSCREEN_ADS7846
-	ret = davinci_cfg_reg(DA850_GPIO6_9);
+	ret = davinci_cfg_reg(DA850_GPIO6_3);
 	if (ret)
 		pr_warning("da850_evm_init: TS mux failed:" " %d\n", ret);
 
@@ -1240,11 +1271,24 @@ static __init void da850_evm_init(void)
 	da850_evm_leds_init();
 #endif
 
+#ifdef CONFIG_SPI_GPIO
 	/* 用于板卡DIO控制 */
-	ret = davinci_cfg_reg_list(da850_evm_dio_pins);
+	ret = davinci_cfg_reg_list(da850_evm_spi_gpio_pins);
 	if (ret)
-		pr_warning("da850_evm_dio_init : User DIO mux failed :"
+		pr_warning("da850_evm_dio_init : User spi_gpio mux failed :"
 				"%d\n", ret);
+
+	ret = spi_register_board_info(da850evm_spi_gpio_info,
+				      ARRAY_SIZE(da850evm_spi_gpio_info));
+	if (ret)
+		pr_warn("%s: spi_gpio info registration failed: %d\n", __func__,
+			ret);
+
+	ret = platform_device_register(&da850_evm_spi_gpio);
+	if (ret) {
+		pr_warning("Could not register spi_gpio device");
+	}
+#endif
 
 	ret = da8xx_register_rproc();
 	if (ret)
