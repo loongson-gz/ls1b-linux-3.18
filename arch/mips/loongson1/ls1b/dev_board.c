@@ -24,25 +24,7 @@ struct plat_ls1x_dma ls1x_dma_pdata = {
 
 #if defined(CONFIG_MTD_NAND_LOONGSON1) || defined(CONFIG_MTD_NAND_LS1X)
 #include <nand.h>
-static struct mtd_partition ls1x_nand_parts[] = {
-	{
-		.name	= "kernel",
-		.offset	= 0,
-		.size	= 14*1024*1024,
-	}, {
-		.name	= "rootfs",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= 100*1024*1024,
-	}, {
-		.name	= "data",
-		.offset	= MTDPART_OFS_APPEND,
-		.size	= MTDPART_SIZ_FULL,
-	},
-};
-
 struct plat_ls1x_nand ls1x_nand_pdata = {
-	.parts		= ls1x_nand_parts,
-	.nr_parts	= ARRAY_SIZE(ls1x_nand_parts),
 	.hold_cycle	= 0x2,
 	.wait_cycle	= 0xc,
 };
@@ -52,8 +34,8 @@ struct plat_ls1x_nand ls1x_nand_pdata = {
 #include <linux/spi/flash.h>
 static struct mtd_partition ls1x_spi_flash_partitions[] = {
 	{
-		.name = "pmon(spi)",
-		.size = 0x00080000,
+		.name = "bootloader",
+		.size = 512*1024,
 		.offset = 0,
 //		.mask_flags = MTD_CAP_ROM
 	}
