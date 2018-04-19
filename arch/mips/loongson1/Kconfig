@@ -46,6 +46,9 @@ config LS1B_DEV_BOARD
 
 config LS1B_CORE_BOARD
 	bool "LS1B_CORE board"
+
+config LS1B_MS_IOTS3000_BOARD
+	bool "LS1B_MS_IOTS3000 board"
 endchoice
 
 endif
