@@ -58,6 +58,7 @@ extern struct platform_device ls1x_sdio_pdev;
 extern struct platform_device ls1x_otg_pdev;
 extern struct platform_device ls1x_hwmon_pdev;
 
+void __init ls1x_pin_mux(void);
 void __init ls1x_clk_init(void);
 void __init ls1x_dma_set_platdata(struct plat_ls1x_dma *pdata);
 void __init ls1x_nand_set_platdata(struct plat_ls1x_nand *pdata);

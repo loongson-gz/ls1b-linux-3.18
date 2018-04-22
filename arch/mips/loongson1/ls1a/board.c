@@ -322,6 +322,7 @@ static int __init ls1a_platform_init(void)
 	int err;
 	int x __maybe_unused;
 
+	ls1x_pin_mux();
 	ls1x_serial_setup(&ls1x_uart_pdev);
 #ifdef CONFIG_DMA_LOONGSON1
 	ls1x_dma_set_platdata(&ls1x_dma_pdata);
