@@ -154,10 +154,26 @@ static struct spi_board_info ls1x_spi1_devices[] = {
 #define GPIO_E_5	(PCF8574_GPIO_BASE+5)
 #define GPIO_E_6	(PCF8574_GPIO_BASE+6)
 #define GPIO_E_7	(PCF8574_GPIO_BASE+7)
+
+static int pcf8574x_setup(struct i2c_client *client, int gpio,
+				unsigned int ngpio, void *context)
+{
+	int i = 0;
+	
+	for (i=0; i<ngpio; i++) {
+		gpio_direction_output(gpio+i, 0);
+	}
+	
+	gpio_request(34, "lv245a_oe");
+	gpio_direction_output(34, 0);
+	
+	return 0;
+}
+
 static struct pcf857x_platform_data ls1x_pcf857x_pdata = {
 	.gpio_base	= PCF8574_GPIO_BASE,
 	.n_latch	= 0,
-	.setup		= NULL,
+	.setup		= pcf8574x_setup,
 	.teardown	= NULL,
 	.context	= NULL,
 };
