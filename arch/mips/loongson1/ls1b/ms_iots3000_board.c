@@ -9,6 +9,7 @@
 
 #include <linux/clk.h>
 #include <linux/gpio.h>
+#include <linux/delay.h>
 
 #include <platform.h>
 #include <loongson1.h>
@@ -166,6 +167,7 @@ static int pcf8574x_setup(struct i2c_client *client, int gpio,
 	
 	gpio_request(34, "lv245a_oe");
 	gpio_direction_output(34, 0);
+	gpio_free(34);
 	
 	return 0;
 }
@@ -425,6 +427,13 @@ static int __init ls1b_platform_init(void)
 #ifdef CONFIG_LEDS_PWM
 	pwm_add_table(pwm_lookup, ARRAY_SIZE(pwm_lookup));
 #endif
+
+	//usb hub复位
+	gpio_request(35, "usb_hub_reset");
+	gpio_direction_output(35, 0);
+	msleep(50);
+	gpio_set_value(35, 1);
+	gpio_free(35);
 
 	err = platform_add_devices(ls1b_platform_devices,
 				   ARRAY_SIZE(ls1b_platform_devices));
