@@ -79,7 +79,7 @@ static int ls1x_gpio0_direction_output(struct gpio_chip *chip, unsigned gpio, in
 
 	return 0;
 }
-
+/*
 static void ls1x_gpio0_free(struct gpio_chip *chip, unsigned gpio)
 {
 	u32 temp;
@@ -88,7 +88,7 @@ static void ls1x_gpio0_free(struct gpio_chip *chip, unsigned gpio)
 	temp &= ~(1 << gpio);
 	__raw_writel(temp, LS1X_GPIO_CFG0);
 }
-
+*/
 /* gpio group 1 */
 static inline int ls1x_gpio1_to_irq(struct gpio_chip *chip, unsigned gpio)
 {
@@ -151,7 +151,7 @@ static int ls1x_gpio1_direction_output(struct gpio_chip *chip, unsigned gpio, in
 
 	return 0;
 }
-
+/*
 static void ls1x_gpio1_free(struct gpio_chip *chip, unsigned gpio)
 {
 	u32 temp;
@@ -160,7 +160,7 @@ static void ls1x_gpio1_free(struct gpio_chip *chip, unsigned gpio)
 	temp &= ~(1 << gpio);
 	__raw_writel(temp, LS1X_GPIO_CFG1);
 }
-
+*/
 /* gpio group 2 */
 #if defined(CONFIG_LOONGSON1_LS1A) || defined(CONFIG_LOONGSON1_LS1C)
 static inline int ls1x_gpio2_to_irq(struct gpio_chip *chip, unsigned gpio)
@@ -224,7 +224,7 @@ static int ls1x_gpio2_direction_output(struct gpio_chip *chip, unsigned gpio, in
 
 	return 0;
 }
-
+/*
 static void ls1x_gpio2_free(struct gpio_chip *chip, unsigned gpio)
 {
 	u32 temp;
@@ -232,7 +232,7 @@ static void ls1x_gpio2_free(struct gpio_chip *chip, unsigned gpio)
 	temp = __raw_readl(LS1X_GPIO_CFG2);
 	temp &= ~(1 << gpio);
 	__raw_writel(temp, LS1X_GPIO_CFG2);
-}
+}*/
 #endif
 
 /* gpio group 3 */
@@ -298,7 +298,7 @@ static int ls1x_gpio3_direction_output(struct gpio_chip *chip, unsigned gpio, in
 
 	return 0;
 }
-
+/*
 static void ls1x_gpio3_free(struct gpio_chip *chip, unsigned gpio)
 {
 	u32 temp;
@@ -306,7 +306,7 @@ static void ls1x_gpio3_free(struct gpio_chip *chip, unsigned gpio)
 	temp = __raw_readl(LS1X_GPIO_CFG3);
 	temp &= ~(1 << gpio);
 	__raw_writel(temp, LS1X_GPIO_CFG3);
-}
+}*/
 #endif
 
 static struct gpio_chip ls1x_chip[] = {
@@ -316,7 +316,7 @@ static struct gpio_chip ls1x_chip[] = {
 		.direction_output       = ls1x_gpio0_direction_output,
 		.get                    = ls1x_gpio0_get_value,
 		.set                    = ls1x_gpio0_set_value,
-		.free					= ls1x_gpio0_free,
+//		.free					= ls1x_gpio0_free,
 		.to_irq					= ls1x_gpio0_to_irq,
 		.base                   = 0,
 		.ngpio                  = 32,
@@ -327,7 +327,7 @@ static struct gpio_chip ls1x_chip[] = {
 		.direction_output       = ls1x_gpio1_direction_output,
 		.get                    = ls1x_gpio1_get_value,
 		.set                    = ls1x_gpio1_set_value,
-		.free					= ls1x_gpio1_free,
+//		.free					= ls1x_gpio1_free,
 		.to_irq					= ls1x_gpio1_to_irq,
 		.base                   = 32,
 		.ngpio                  = 32,
@@ -339,7 +339,7 @@ static struct gpio_chip ls1x_chip[] = {
 		.direction_output       = ls1x_gpio2_direction_output,
 		.get                    = ls1x_gpio2_get_value,
 		.set                    = ls1x_gpio2_set_value,
-		.free					= ls1x_gpio2_free,
+//		.free					= ls1x_gpio2_free,
 		.to_irq					= ls1x_gpio2_to_irq,
 		.base                   = 64,
 		.ngpio                  = 32,
@@ -352,7 +352,7 @@ static struct gpio_chip ls1x_chip[] = {
 		.direction_output       = ls1x_gpio3_direction_output,
 		.get                    = ls1x_gpio3_get_value,
 		.set                    = ls1x_gpio3_set_value,
-		.free					= ls1x_gpio3_free,
+//		.free					= ls1x_gpio3_free,
 		.to_irq					= ls1x_gpio3_to_irq,
 		.base                   = 96,
 		.ngpio                  = 32,
