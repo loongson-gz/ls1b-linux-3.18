@@ -640,6 +640,36 @@ static const struct spi_device_id spi_nor_ids[] = {
 	{ },
 };
 
+#ifdef CONFIG_PROC_FS
+#include <linux/proc_fs.h>
+static ssize_t unique_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+{
+	struct spi_nor *nor = PDE_DATA(file_inode(file));
+	u8			unique[12];
+	u64         unique_id = 0;
+	int			i, tmp;
+
+	tmp = nor->read_reg(nor, 0x4b, unique, 12);
+	if (tmp < 0) {
+		dev_dbg(nor->dev, " error %d reading unique ID\n", tmp);
+		return 0;
+	}
+
+	for (i=4; i<11; i++) {
+		unique_id |= unique[i];
+		unique_id = unique_id << 8;
+	}
+	unique_id |= unique[i];
+
+	return sprintf(buf, "%llx\n", unique_id);
+}
+
+static const struct file_operations spi_nor_proc_fops = {
+	.read   = unique_read,
+	.llseek = default_llseek,
+};
+#endif
+
 static const struct spi_device_id *spi_nor_read_id(struct spi_nor *nor)
 {
 	int			tmp;
@@ -647,6 +677,10 @@ static const struct spi_device_id *spi_nor_read_id(struct spi_nor *nor)
 	u32			jedec;
 	u16                     ext_jedec;
 	struct flash_info	*info;
+
+#ifdef CONFIG_PROC_FS
+	proc_create_data("unique_id", 0666, NULL, &spi_nor_proc_fops, nor);
+#endif
 
 	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, 5);
 	if (tmp < 0) {
