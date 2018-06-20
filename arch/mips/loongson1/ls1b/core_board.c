@@ -50,7 +50,7 @@ static struct flash_platform_data ls1x_spi_flash_data = {
 
 #ifdef CONFIG_TOUCHSCREEN_ADS7846
 #include <linux/spi/ads7846.h>
-#define ADS7846_GPIO_IRQ 60 /* 开发板触摸屏使用的外部中断 */
+#define ADS7846_GPIO_IRQ 29 /* 开发板触摸屏使用的外部中断 */
 static struct ads7846_platform_data ads_info __maybe_unused = {
 	.model				= 7846,
 	.vref_delay_usecs	= 1,
