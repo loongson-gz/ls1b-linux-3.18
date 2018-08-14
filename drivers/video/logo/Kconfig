@@ -82,4 +82,18 @@ config LOGO_M32R_CLUT224
 	depends on M32R
 	default y
 
+config LOGO_ANIMATION
+	bool "Animation logo support"
+	depends on FB=y
+	default n
+
+if LOGO_ANIMATION
+
+config LOGO_ANIMATION_START
+	bool "224-color Linux animation logo"
+	depends on LOGO_ANIMATION
+	default y
+
+endif
+
 endif # LOGO

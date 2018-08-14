@@ -473,7 +473,11 @@ static int fb_show_logo_line(struct fb_info *info, int rotate,
 
 	if (fb_logo.needs_truepalette ||
 	    fb_logo.needs_directpalette) {
+		#ifdef CONFIG_LOGO_ANIMATION
+		palette = kmalloc(256 * 4, GFP_ATOMIC);
+		#else
 		palette = kmalloc(256 * 4, GFP_KERNEL);
+		#endif
 		if (palette == NULL)
 			return 0;
 
@@ -487,7 +491,11 @@ static int fb_show_logo_line(struct fb_info *info, int rotate,
 	}
 
 	if (fb_logo.depth <= 4) {
+		#ifdef CONFIG_LOGO_ANIMATION
+		logo_new = kmalloc(logo->width * logo->height, GFP_ATOMIC);
+		#else
 		logo_new = kmalloc(logo->width * logo->height, GFP_KERNEL);
+		#endif
 		if (logo_new == NULL) {
 			kfree(palette);
 			if (saved_pseudo_palette)
@@ -504,8 +512,13 @@ static int fb_show_logo_line(struct fb_info *info, int rotate,
 	image.height = logo->height;
 
 	if (rotate) {
+		#ifdef CONFIG_LOGO_ANIMATION
+		logo_rotate = kmalloc(logo->width *
+				      logo->height, GFP_ATOMIC);
+		#else
 		logo_rotate = kmalloc(logo->width *
 				      logo->height, GFP_KERNEL);
+		#endif
 		if (logo_rotate)
 			fb_rotate_logo(info, logo_rotate, &image, rotate);
 	}
@@ -677,6 +690,147 @@ int fb_show_logo(struct fb_info *info, int rotate) { return 0; }
 EXPORT_SYMBOL(fb_prepare_logo);
 EXPORT_SYMBOL(fb_show_logo);
 
+/******************************************************************************/
+#ifdef CONFIG_LOGO_ANIMATION
+#include <linux/sysfs.h>
+#define FB_LOGO_EX_NUM_MAX 10
+#define ANIMATION_UPDATE_TIME (HZ/2)
+
+extern const struct linux_logo logo_start0_clut224;
+extern const struct linux_logo logo_start1_clut224;
+extern const struct linux_logo logo_start2_clut224;
+extern const struct linux_logo logo_start3_clut224;
+
+static struct kobject *animation_logo_kobj;
+static struct timer_list timer;
+
+static struct logo_data_animation {
+	const struct linux_logo *logo;
+	unsigned int n;
+} fb_logo_animation[FB_LOGO_EX_NUM_MAX];
+
+static unsigned int fb_animation_num;
+static unsigned int fb_animation_current_num;
+static int animation_rotate;
+static int animation_off = 0;
+
+/*
+ * The "animation" file where a static variable is read from and written to.
+ */
+static ssize_t animation_show(struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
+{
+	return sprintf(buf, "%d\n", animation_off);
+}
+
+static ssize_t animation_store(struct kobject *kobj, struct kobj_attribute *attr,
+			 const char *buf, size_t count)
+{
+	sscanf(buf, "%du", &animation_off);
+	return count;
+}
+
+static struct kobj_attribute animation_attribute =
+	__ATTR(animation_off, 0644, animation_show, animation_store);
+
+/*
+ * Create a group of attributes so that we can create and destroy them all
+ * at once.
+ */
+static struct attribute *attrs[] = {
+	&animation_attribute.attr,
+	NULL,	/* need to NULL terminate the list of attributes */
+};
+
+static struct attribute_group attr_group = {
+	.attrs = attrs,
+};
+
+static void fb_append_animation_logo(const struct linux_logo *logo, unsigned int n)
+{
+	if (!n || fb_animation_num == FB_LOGO_EX_NUM_MAX)
+		return;
+
+	fb_logo_animation[fb_animation_num].logo = logo;
+	fb_logo_animation[fb_animation_num].n = n;
+	fb_animation_num++;
+}
+
+static void animation_timer(unsigned long data)
+{
+	struct fb_info *info = (struct fb_info *)data;
+
+	/* linux系统运行后自动关闭定时器 */
+	if (system_state == SYSTEM_RUNNING) {
+		del_timer(&timer);
+		return;
+	}
+	/* 进入跟文件系统后可以发送
+   echo 1 > /sys/kernel/animation_logo/animation_off
+	来关闭定时器，关闭动态logo
+	*/
+	if (animation_off) {
+		del_timer(&timer);
+		return;
+	}
+
+	fb_show_logo_line(info, animation_rotate, fb_logo_animation[fb_animation_current_num].logo, 0, 1);
+	fb_animation_current_num++;
+	if (fb_animation_current_num >= fb_animation_num) {
+		fb_animation_current_num = 0;
+//		del_timer(&timer);
+//		return;
+	}
+	/* 再次启动定时器，可以循环显示logo */
+	mod_timer(&timer, jiffies + ANIMATION_UPDATE_TIME);
+}
+
+int fb_show_animation_logo(struct fb_info *info, int rotate)
+{
+	int retval;
+
+	animation_logo_kobj = kobject_create_and_add("animation_logo", kernel_kobj);
+	if (!animation_logo_kobj)
+		return -ENOMEM;
+
+	/* Create the files associated with this kobject */
+	retval = sysfs_create_group(animation_logo_kobj, &attr_group);
+	if (retval)
+		kobject_put(animation_logo_kobj);
+
+	fb_animation_num = 0;
+	fb_animation_current_num = 0;
+	animation_rotate = rotate;
+
+#ifdef CONFIG_LS1B_DATA_ACQ_V21_BOARD
+	fb_append_animation_logo(&logo_start_clut224,  1);
+	fb_append_animation_logo(&logo_start0_clut224, 1);
+	fb_append_animation_logo(&logo_start1_clut224, 1);
+	fb_append_animation_logo(&logo_start2_clut224, 1);
+	fb_append_animation_logo(&logo_start3_clut224, 1);
+#else
+	fb_append_animation_logo(&logo_start_clut224,  1);
+	fb_append_animation_logo(&logo_linux_clut224, 1);
+	fb_append_animation_logo(&logo_dec_clut224, 1);
+#endif
+
+	fb_show_logo_line(info, rotate, fb_logo_animation[0].logo, 0, 1);
+
+	/* setup the timer */
+	init_timer(&timer);
+	timer.function = animation_timer;
+	timer.data = (unsigned long)info;
+
+	timer.expires = jiffies + ANIMATION_UPDATE_TIME;
+	add_timer(&timer);
+
+	return retval;
+}
+
+EXPORT_SYMBOL(fb_show_animation_logo);
+#endif
+/******************************************************************************/
+
 static void *fb_seq_start(struct seq_file *m, loff_t *pos)
 {
 	mutex_lock(&registration_lock);
@@ -761,7 +915,7 @@ fb_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 
 	if (info->fbops->fb_read)
 		return info->fbops->fb_read(info, buf, count, ppos);
-	
+
 	total_size = info->screen_size;
 
 	if (total_size == 0)
@@ -826,7 +980,7 @@ fb_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 
 	if (info->fbops->fb_write)
 		return info->fbops->fb_write(info, buf, count, ppos);
-	
+
 	total_size = info->screen_size;
 
 	if (total_size == 0)
@@ -1054,7 +1208,7 @@ EXPORT_SYMBOL(fb_set_var);
 
 int
 fb_blank(struct fb_info *info, int blank)
-{	
+{
 	struct fb_event event;
 	int ret = -EINVAL, early_ret;
 
@@ -1476,7 +1630,7 @@ out:
 	return res;
 }
 
-static int 
+static int
 fb_release(struct inode *inode, struct file *file)
 __acquires(&info->lock)
 __releases(&info->lock)
@@ -1653,7 +1807,7 @@ static int do_register_framebuffer(struct fb_info *fb_info)
 			fb_info->pixmap.access_align = 32;
 			fb_info->pixmap.flags = FB_PIXMAP_DEFAULT;
 		}
-	}	
+	}
 	fb_info->pixmap.offset = 0;
 
 	if (!fb_info->pixmap.blit_x)

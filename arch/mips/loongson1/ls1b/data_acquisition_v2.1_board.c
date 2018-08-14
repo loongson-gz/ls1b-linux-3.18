@@ -131,7 +131,7 @@ static int tca6424_setup(struct i2c_client *client, unsigned gpio,
 {
 	int i = 0;
 
-	for (i=0; i<ngpio; i++) {
+	for (i=0; i<8; i++) {
 		gpio_direction_output(gpio+i, 0);
 	}
 

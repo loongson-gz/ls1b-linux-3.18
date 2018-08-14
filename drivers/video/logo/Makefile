@@ -18,6 +18,16 @@ obj-$(CONFIG_LOGO_M32R_CLUT224)		+= logo_m32r_clut224.o
 
 obj-$(CONFIG_SPU_BASE)			+= logo_spe_clut224.o
 
+obj-$(CONFIG_LOGO_ANIMATION)		+= logo_start_clut224.o
+ifdef CONFIG_LS1B_DATA_ACQ_V21_BOARD
+obj-$(CONFIG_LOGO_ANIMATION)		+= logo_start0_clut224.o
+obj-$(CONFIG_LOGO_ANIMATION)		+= logo_start1_clut224.o
+obj-$(CONFIG_LOGO_ANIMATION)		+= logo_start2_clut224.o
+obj-$(CONFIG_LOGO_ANIMATION)		+= logo_start3_clut224.o
+else
+obj-$(CONFIG_LOGO_ANIMATION)		+= logo_linux_clut224.o logo_dec_clut224.o
+endif
+
 # How to generate logo's
 
 # Use logo-cfiles to retrieve list of .c files to be built
@@ -37,7 +47,11 @@ extra-y += $(call logo-cfiles,_clut224,ppm)
 # Gray 256
 extra-y += $(call logo-cfiles,_gray256,pgm)
 
+ifdef CONFIG_LOGO_ANIMATION
+pnmtologo := scripts/pnmtologo_animation
+else
 pnmtologo := scripts/pnmtologo
+endif
 
 # Create commands like "pnmtologo -t mono -n logo_mac_mono -o ..."
 quiet_cmd_logo = LOGO    $@
