@@ -163,6 +163,19 @@ static struct pca953x_platform_data i2c_tca6424_platdata = {
 };
 #endif /* defined(CONFIG_GPIO_PCA953X) || defined(CONFIG_GPIO_PCA953X_MODULE) */
 
+#ifdef CONFIG_TOUCHSCREEN_GOODIX
+#include <linux/input/goodix.h>
+#define GT911_RESET (TCA6424_GPIO_BASE + 22)
+static struct goodix_platform_data i2c_goodix_platdata = {
+	.irq_pin = 35,
+	.reset_pin = GT911_RESET,
+
+	.swapped_x_y = 0,
+	.inverted_x = 0,
+	.inverted_y = 0,
+};
+#endif
+
 #ifdef CONFIG_I2C_LS1X
 #include <linux/i2c.h>
 static struct i2c_board_info ls1x_i2c0_board_info[] = {
@@ -182,6 +195,7 @@ static struct i2c_board_info ls1x_i2c0_board_info[] = {
 	{
 		I2C_BOARD_INFO("GDIX1001:00", 0x14),
 		.irq = LS1X_GPIO_FIRST_IRQ + 35,
+		.platform_data = &i2c_goodix_platdata,
 	},
 #endif
 };
