@@ -38,8 +38,7 @@
 #define DRIVER_NAME_5 "ls1xvga"
 
 /* 如果PMON已配置好LCD控制器，这里可以不用再次初始化，可以避免屏幕切换时的花屏 */
-#define INIT_AGAIN
-#ifdef INIT_AGAIN
+#ifdef CONFIG_LS1X_FB_INIT_AGAIN
 #define writel_reg(val, addr)	writel(val, addr);
 #else
 #define writel_reg(val, addr)
