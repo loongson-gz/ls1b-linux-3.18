@@ -242,10 +242,12 @@ struct ls1b_vga ls1b_vga_modes[] = {
 		.yres = 600,
 		.refresh = 75,
 	#if OSC == 25000000
-		.ls1b_pll_freq = 0x21813,
+//		.ls1b_pll_freq = 0x21813,
+		.ls1b_pll_freq = 0x00013,
 		.ls1b_pll_div = 0x8a28ea00,
 	#else	//OSC == 33000000
-		.ls1b_pll_freq = 0x0080c,
+//		.ls1b_pll_freq = 0x0080c,
+		.ls1b_pll_freq = 0x0000c,
 		.ls1b_pll_div = 0x8a28ea00,
 	#endif
 	},
@@ -254,10 +256,12 @@ struct ls1b_vga ls1b_vga_modes[] = {
 		.yres = 768,
 		.refresh = 60,
 	#if OSC == 25000000
-		.ls1b_pll_freq = 0x2181d,
+//		.ls1b_pll_freq = 0x2181d,
+		.ls1b_pll_freq = 0x0001d,
 		.ls1b_pll_div = 0x8a28ea00,
 	#else	//OSC == 33000000
-		.ls1b_pll_freq = 0x21813,
+//		.ls1b_pll_freq = 0x21813,
+		.ls1b_pll_freq = 0x00013,
 		.ls1b_pll_div = 0x8a28ea00,
 	#endif
 	},
@@ -266,10 +270,12 @@ struct ls1b_vga ls1b_vga_modes[] = {
 		.yres = 1024,
 		.refresh = 75,
 	#if OSC == 25000000
-		.ls1b_pll_freq = 0x3af1e,
+//		.ls1b_pll_freq = 0x3af1e,
+		.ls1b_pll_freq = 0x0001e,
 		.ls1b_pll_div = 0x8628ea00,
 	#else	//OSC == 33000000
-		.ls1b_pll_freq = 0x3af14,
+//		.ls1b_pll_freq = 0x3af14,
+		.ls1b_pll_freq = 0x00014,
 		.ls1b_pll_div = 0x8628ea00,
 	#endif
 	},
@@ -278,10 +284,12 @@ struct ls1b_vga ls1b_vga_modes[] = {
 		.yres = 900,
 		.refresh = 75,
 	#if OSC == 25000000
-		.ls1b_pll_freq = 0x3af1f,
+//		.ls1b_pll_freq = 0x3af1f,
+		.ls1b_pll_freq = 0x0001f,
 		.ls1b_pll_div = 0x8628ea00,
 	#else	//OSC == 33000000
-		.ls1b_pll_freq = 0x3af14,
+//		.ls1b_pll_freq = 0x3af14,
+		.ls1b_pll_freq = 0x00014,
 		.ls1b_pll_div = 0x8628ea00,
 	#endif
 	},
@@ -290,10 +298,12 @@ struct ls1b_vga ls1b_vga_modes[] = {
 		.yres = 1080,
 		.refresh = 60,
 	#if OSC == 25000000
-		.ls1b_pll_freq = 0x3af23,
+//		.ls1b_pll_freq = 0x3af23,
+		.ls1b_pll_freq = 0x00023,
 		.ls1b_pll_div = 0x86392a00,
 	#else	//OSC == 33000000
-		.ls1b_pll_freq = 0x3af17,
+//		.ls1b_pll_freq = 0x3af17,
+		.ls1b_pll_freq = 0x00017,
 		.ls1b_pll_div = 0x86392a00,
 	#endif
 	},

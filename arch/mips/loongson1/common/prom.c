@@ -131,8 +131,6 @@ void __init prom_init(void)
 		uart_base = ioremap_nocache(LS1X_UART0_BASE, 0x0f);
 	setup_8250_early_printk_port((unsigned long)uart_base, 0, 0);
 
-	pr_info("memsize=%ldMB, highmemsize=%ldMB\n", memsize, highmemsize);
-
 #if defined(CONFIG_LOONGSON1_LS1B) && defined(CONFIG_FB_LOONGSON1)
 	/* 只用于ls1b的lcd接口传vga接口时使用，如云终端，
 	 因为使用vga时，pll通过计算难以得到合适的分频;给LS1X_CLK_PLL_FREQ和LS1X_CLK_PLL_DIV
@@ -170,7 +168,7 @@ void __init prom_init(void)
 				default_yres = 600;
 			}
 		}
-		for (input_vga=ls1b_vga_modes; input_vga->ls1b_pll_freq !=0; ++input_vga) {
+		for (input_vga=ls1b_vga_modes; input_vga->ls1b_pll_freq != 0; ++input_vga) {
 //			if((input_vga->xres == default_xres) && (input_vga->yres == default_yres) &&
 //				(input_vga->refresh == default_refresh)) {
 			if ((input_vga->xres == default_xres) && (input_vga->yres == default_yres)) {
@@ -199,6 +197,8 @@ void __init prom_init(void)
 	}
 	}
 #endif
+
+	pr_info("memsize=%ldMB, highmemsize=%ldMB\n", memsize, highmemsize);
 }
 
 void __init prom_free_prom_memory(void)
