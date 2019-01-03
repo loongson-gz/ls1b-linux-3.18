@@ -19,6 +19,7 @@
 
 #include <loongson1.h>
 #include <prom.h>
+#include <machtypes.h>
 
 unsigned long ls1x_osc_clk;
 EXPORT_SYMBOL(ls1x_osc_clk);
@@ -114,6 +115,9 @@ void __init prom_init(void)
 	ls1x_osc_clk = env_or_default("osc_clk", OSC);
 	memsize = env_or_default("memsize", DEFAULT_MEMSIZE);
 	highmemsize = env_or_default("highmemsize", 0x0);
+
+	mips_machtype = LOONGSON1_MACHTYPE;
+	mips_machine_setup();
 
 	if (strstr(arcs_cmdline, "console=ttyS5"))
 	#if defined(CONFIG_LOONGSON1_LS1B) || defined(CONFIG_LOONGSON1_LS1C)

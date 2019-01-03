@@ -439,3 +439,10 @@ static int __init ls1b_platform_init(void)
 }
 
 arch_initcall(ls1b_platform_init);
+
+#include <machtypes.h>
+
+MIPS_MACHINE(LOONGSON1_MACH_1B_CORE,
+	     "Loongson1",
+	     "LSGZ 1B Core board",
+	     NULL);
