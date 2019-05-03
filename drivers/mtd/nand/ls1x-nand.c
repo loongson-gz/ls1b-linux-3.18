@@ -451,7 +451,7 @@ static int ls1x_nand_scan(struct mtd_info *mtd)
 	struct ls1x_nand_info *info = mtd->priv;
 	struct nand_chip *chip = (struct nand_chip *)info;
 	struct platform_device *pdev = info->pdev;
-	uint64_t chipsize;
+	uint32_t chipsize;
 	int exit_nand_size;
 
 	if (nand_scan_ident(mtd, 1, NULL))
