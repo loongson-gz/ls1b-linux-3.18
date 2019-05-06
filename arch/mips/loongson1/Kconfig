@@ -52,6 +52,9 @@ config LS1B_MS_IOTS3000_BOARD
 
 config LS1B_DATA_ACQ_V21_BOARD
 	bool "LS1B Data Acquisition V2.1 board"
+
+config LS1B_DATA_ACQ_V24_BOARD
+	bool "LS1B Data Acquisition V2.4 board"
 endchoice
 
 endif
