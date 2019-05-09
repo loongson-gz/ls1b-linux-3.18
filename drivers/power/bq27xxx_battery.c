@@ -976,6 +976,7 @@ int bq27xxx_battery_setup(struct bq27xxx_device_info *di)
 */
 	int ret;
 
+	di->regs = bq27xxx_regs[di->chip];
 	di->bat.name = di->name;
 	di->bat.type = POWER_SUPPLY_TYPE_BATTERY;
 	di->bat.properties = bq27xxx_battery_props[di->chip].props;
